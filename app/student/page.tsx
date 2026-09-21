@@ -96,7 +96,7 @@ export default function StudentPage() {
         </Link>
         <div>
           <h1 className="font-bold text-lg leading-tight">My Attendance</h1>
-          <p className="text-green-200 text-xs">UET · CS Section C · 2025 Fall</p>
+          <p className="text-green-200 text-xs">UET · CYS Section C · 2025 Fall</p>
         </div>
       </div>
 

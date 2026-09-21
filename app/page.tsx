@@ -1,8 +1,9 @@
 'use client'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { GraduationCap, BookOpen } from 'lucide-react'
+import { BookOpen } from 'lucide-react'
 import { useState } from 'react'
+import Image from 'next/image'
 
 export default function Home() {
   const router = useRouter()
@@ -28,17 +29,24 @@ export default function Home() {
           <div className="flex justify-center mb-4">
             <button
               onClick={handleLogoTap}
-              className="bg-green-600 rounded-full p-4 shadow-lg active:scale-95 transition-transform select-none focus:outline-none"
+              className="rounded-full bg-white shadow-lg p-2 active:scale-95 transition-transform select-none focus:outline-none hover:shadow-xl"
               title="UET Lahore"
             >
-              <GraduationCap className="w-10 h-10 text-white" />
+              <Image
+                src="https://www.uet.edu.pk/gallery/logo.jpg"
+                alt="UET Lahore"
+                width={80}
+                height={80}
+                className="rounded-full object-contain"
+                unoptimized
+              />
             </button>
           </div>
           {hint && (
-            <p className="text-green-400 text-xs mb-2 animate-pulse">Keep tapping...</p>
+            <p className="text-green-500 text-xs mb-2 animate-pulse">Keep tapping...</p>
           )}
           <h1 className="text-3xl font-bold text-gray-900">UET Lahore</h1>
-          <p className="text-green-700 font-semibold mt-1">Cybersecurity – Section C</p>
+          <p className="text-green-700 font-semibold mt-1">Cybersecurity (CYS) – Section C</p>
           <p className="text-gray-500 text-sm mt-1">2025 Fall Morning</p>
         </div>
 

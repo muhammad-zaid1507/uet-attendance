@@ -2,7 +2,8 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { LogIn, Eye, EyeOff, GraduationCap } from 'lucide-react'
+import { LogIn, Eye, EyeOff } from 'lucide-react'
+import Image from 'next/image'
 
 export default function StaffLoginPage() {
   const [email, setEmail] = useState('')
@@ -33,12 +34,19 @@ export default function StaffLoginPage() {
         {/* Header */}
         <div className="text-center mb-7">
           <div className="flex justify-center mb-3">
-            <div className="bg-green-600 rounded-full p-3 shadow-lg">
-              <GraduationCap className="w-7 h-7 text-white" />
+            <div className="bg-white rounded-full p-1 shadow-lg">
+              <Image
+                src="https://www.uet.edu.pk/gallery/logo.jpg"
+                alt="UET Lahore"
+                width={64}
+                height={64}
+                className="rounded-full object-contain"
+                unoptimized
+              />
             </div>
           </div>
           <h2 className="text-white text-xl font-bold">Staff Login</h2>
-          <p className="text-gray-400 text-sm mt-1">CS Section C · 2025 Fall</p>
+          <p className="text-gray-400 text-sm mt-1">CYS Section C · 2025 Fall</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">

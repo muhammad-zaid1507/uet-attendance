@@ -33,7 +33,7 @@ export default function DashboardNav() {
           <GraduationCap className="w-7 h-7" />
           <div>
             <span className="font-bold text-base leading-tight block">UET Attendance</span>
-            <span className="text-blue-200 text-xs">CS Section C · 2025 Fall</span>
+            <span className="text-blue-200 text-xs">CYS Section C · 2025 Fall</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
