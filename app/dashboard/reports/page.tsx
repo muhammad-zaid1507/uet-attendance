@@ -2,8 +2,8 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Student, Subject } from '@/lib/types'
-import { calcPercentage, statusBg, formatDate } from '@/lib/utils'
-import { Users, BookOpen, TrendingDown } from 'lucide-react'
+import { calcPercentage, statusBg } from '@/lib/utils'
+import { Users, BookOpen, TrendingDown, FileDown } from 'lucide-react'
 
 interface StudentReport {
   student: Student
@@ -83,6 +83,71 @@ export default function ReportsPage() {
     setLoading(false)
   }
 
+  async function exportPDF() {
+    const { default: jsPDF } = await import('jspdf')
+    const { default: autoTable } = await import('jspdf-autotable')
+    const doc = new jsPDF()
+
+    doc.setFontSize(16)
+    doc.setTextColor(22, 101, 52)
+    doc.text('UET Lahore – CS Section C', 14, 18)
+    doc.setFontSize(10)
+    doc.setTextColor(100)
+    doc.text('Attendance Report  |  2025 Fall Morning  |  Generated: ' + new Date().toLocaleDateString('en-PK'), 14, 26)
+    doc.setTextColor(100, 100, 100)
+    doc.setFontSize(7)
+    doc.text('Powered by ARWA Travel', 14, 32)
+
+    let y = 40
+
+    if (tab === 'students') {
+      for (const sr of studentReports.filter(r => r.subjects.length > 0)) {
+        doc.setFontSize(11)
+        doc.setTextColor(30, 30, 30)
+        doc.text(`${sr.student.name}  (${sr.student.roll_no})  —  Overall: ${sr.overall}%`, 14, y)
+        y += 4
+        autoTable(doc, {
+          startY: y,
+          head: [['Subject', 'Code', 'Present', 'Late', 'Absent', 'Total', '%']],
+          body: sr.subjects.map(s => [s.subject.name, s.subject.code, s.present, s.late, s.total - s.present - s.late, s.total, `${s.pct}%`]),
+          styles: { fontSize: 8, cellPadding: 2 },
+          headStyles: { fillColor: [22, 101, 52] },
+          margin: { left: 14, right: 14 },
+        })
+        y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8
+        if (y > 260) { doc.addPage(); y = 20 }
+      }
+    } else if (tab === 'subjects') {
+      for (const sr of subjectReports) {
+        doc.setFontSize(11)
+        doc.setTextColor(30, 30, 30)
+        doc.text(`${sr.subject.name}  (${sr.subject.code})  —  Avg: ${sr.avgPct}%  |  ${sr.totalDates} classes`, 14, y)
+        y += 4
+        autoTable(doc, {
+          startY: y,
+          head: [['Roll No', 'Name', 'Present', 'Late', 'Absent', 'Total', '%']],
+          body: sr.students.sort((a, b) => a.pct - b.pct).map(s => [s.student.roll_no, s.student.name, s.present, s.late, s.total - s.present - s.late, s.total, `${s.pct}%`]),
+          styles: { fontSize: 8, cellPadding: 2 },
+          headStyles: { fillColor: [29, 78, 216] },
+          margin: { left: 14, right: 14 },
+        })
+        y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8
+        if (y > 260) { doc.addPage(); y = 20 }
+      }
+    } else {
+      autoTable(doc, {
+        startY: y,
+        head: [['Student', 'Roll No', 'Subject', 'Present/Total', '%', 'Short By']],
+        body: lowAttendance.map(r => [r.student.name, r.student.roll_no, r.subject.name, `${r.present}/${r.total}`, `${r.pct}%`, `${Math.ceil(r.total * 0.75) - r.present} classes`]),
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [185, 28, 28] },
+        margin: { left: 14, right: 14 },
+      })
+    }
+
+    doc.save(`UET-CS-Attendance-${tab}-${new Date().toISOString().slice(0, 10)}.pdf`)
+  }
+
   const lowAttendance = studentReports.flatMap(sr =>
     sr.subjects.filter(s => s.pct < 75 && s.total > 0).map(s => ({
       student: sr.student,
@@ -100,7 +165,8 @@ export default function ReportsPage() {
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Reports</h1>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-200 rounded-2xl p-1 mb-6 w-fit">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <div className="flex gap-1 bg-gray-200 rounded-2xl p-1 w-fit">
         {([['students', 'By Student', Users], ['subjects', 'By Subject', BookOpen], ['low', 'Low Attendance', TrendingDown]] as const).map(([key, label, Icon]) => (
           <button
             key={key}
@@ -114,6 +180,13 @@ export default function ReportsPage() {
             )}
           </button>
         ))}
+        </div>
+        <button
+          onClick={exportPDF}
+          className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors shadow"
+        >
+          <FileDown className="w-4 h-4" /> Export PDF
+        </button>
       </div>
 
       {/* Student reports */}

@@ -1,4 +1,5 @@
 import DashboardNav from '@/components/DashboardNav'
+import ArwaFooter from '@/components/ArwaFooter'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,6 +10,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <main className="max-w-6xl mx-auto p-4 pt-6">
         {children}
       </main>
+      <ArwaFooter />
     </div>
   )
 }

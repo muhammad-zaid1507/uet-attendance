@@ -50,6 +50,14 @@ export default function Home() {
         <p className="text-center text-gray-400 text-xs mt-8">
           Department of Computer Science · UET Lahore
         </p>
+        <a
+          href="https://arwatravel.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block text-center mt-4 text-xs text-gray-300 hover:text-gray-400 transition-colors tracking-widest uppercase"
+        >
+          ✦ Crafted by ARWA Travel ✦
+        </a>
       </div>
     </main>
   )
