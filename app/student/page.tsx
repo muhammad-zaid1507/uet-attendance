@@ -24,14 +24,13 @@ export default function StudentPage() {
   const [error, setError] = useState('')
   const [searched, setSearched] = useState(false)
 
-  const supabase = createClient()
-
   async function search(e: React.FormEvent) {
     e.preventDefault()
     if (!rollNo.trim()) return
     setLoading(true)
     setError('')
     setSearched(false)
+    const supabase = createClient()
 
     const { data: student, error: sErr } = await supabase
       .from('students')
@@ -56,7 +55,7 @@ export default function StudentPage() {
     const map: Record<string, SubjectSummary> = {}
 
     for (const r of records ?? []) {
-      const sub = r.subjects as { name: string; code: string } | null
+      const sub = Array.isArray(r.subjects) ? r.subjects[0] as { name: string; code: string } | undefined : r.subjects as { name: string; code: string } | null
       if (!sub) continue
       if (!map[r.subject_id]) {
         map[r.subject_id] = {
