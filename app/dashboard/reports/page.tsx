@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Student, Subject } from '@/lib/types'
 import { calcPercentage, statusBg } from '@/lib/utils'
 import { Users, BookOpen, TrendingDown, FileDown } from 'lucide-react'
+// Late feature removed — P/A only
 
 interface StudentReport {
   student: Student
@@ -47,12 +48,11 @@ export default function ReportsPage() {
       const subjectData = subList.map(subject => {
         const rows = attList.filter(r => r.student_id === student.id && r.subject_id === subject.id)
         const present = rows.filter(r => r.status === 'present').length
-        const late = rows.filter(r => r.status === 'late').length
         const total = rows.length
-        return { subject, present, late, total, pct: calcPercentage(present + late, total) }
+        return { subject, present, late: 0, total, pct: calcPercentage(present, total) }
       }).filter(s => s.total > 0)
 
-      const totalP = subjectData.reduce((a, b) => a + b.present + b.late, 0)
+      const totalP = subjectData.reduce((a, b) => a + b.present, 0)
       const totalT = subjectData.reduce((a, b) => a + b.total, 0)
       return { student, subjects: subjectData, overall: calcPercentage(totalP, totalT) }
     })
@@ -64,9 +64,8 @@ export default function ReportsPage() {
       const studentData = studList.map(student => {
         const srows = rows.filter(r => r.student_id === student.id)
         const present = srows.filter(r => r.status === 'present').length
-        const late = srows.filter(r => r.status === 'late').length
         const total = srows.length
-        return { student, present, late, total, pct: calcPercentage(present + late, total) }
+        return { student, present, late: 0, total, pct: calcPercentage(present, total) }
       }).filter(s => s.total > 0)
 
       const avg = studentData.length > 0

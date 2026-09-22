@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Subject, Student } from '@/lib/types'
 import { formatDateShort, formatDate } from '@/lib/utils'
-import { CheckCircle2, XCircle, Clock, Save, Plus, Trash2, CalendarCheck, Lock, Unlock, Eye, EyeOff } from 'lucide-react'
+import { CheckCircle2, XCircle, Save, Plus, Trash2, CalendarCheck, Lock, Unlock, Eye, EyeOff } from 'lucide-react'
 
-type Status = 'present' | 'absent' | 'late'
-const statusCycle: Status[] = ['present', 'absent', 'late']
+type Status = 'present' | 'absent'
+const statusCycle: Status[] = ['present', 'absent']
 
 export default function AttendancePage() {
   const [subjects, setSubjects] = useState<Subject[]>([])
@@ -169,14 +169,12 @@ export default function AttendancePage() {
   const statusIcon = (s: Status, locked: boolean) => {
     const cls = locked ? 'opacity-50' : ''
     if (s === 'present') return <CheckCircle2 className={`w-5 h-5 text-green-600 ${cls}`} />
-    if (s === 'late') return <Clock className={`w-5 h-5 text-yellow-500 ${cls}`} />
     return <XCircle className={`w-5 h-5 text-red-400 ${cls}`} />
   }
 
   const statusCell = (s: Status, locked: boolean) => {
     const base = locked ? 'opacity-60 cursor-not-allowed ' : 'cursor-pointer '
     if (s === 'present') return base + 'bg-green-50 hover:bg-green-100'
-    if (s === 'late') return base + 'bg-yellow-50 hover:bg-yellow-100'
     return base + 'bg-red-50 hover:bg-red-100'
   }
 
@@ -305,8 +303,7 @@ export default function AttendancePage() {
                   <tbody>
                     {students.map((student, i) => {
                       const presentCount = dates.filter(d => records[student.id]?.[d] === 'present').length
-                      const lateCount = dates.filter(d => records[student.id]?.[d] === 'late').length
-                      const pct = dates.length > 0 ? Math.round(((presentCount + lateCount) / dates.length) * 100) : 0
+                      const pct = dates.length > 0 ? Math.round((presentCount / dates.length) * 100) : 0
                       return (
                         <tr key={student.id} className="hover:bg-gray-50 border-b last:border-0">
                           <td className="sticky left-0 bg-white px-3 py-2.5 text-gray-400 border-r text-xs">{i + 1}</td>
@@ -340,8 +337,7 @@ export default function AttendancePage() {
               <div className="px-4 py-3 bg-gray-50 border-t flex gap-4 text-xs text-gray-500 flex-wrap">
                 <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Present</span>
                 <span className="flex items-center gap-1"><XCircle className="w-3.5 h-3.5 text-red-400" /> Absent</span>
-                <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-yellow-500" /> Late</span>
-                <span className="flex items-center gap-1"><Lock className="w-3.5 h-3.5 text-orange-500" /> Locked date (password needed to edit)</span>
+                <span className="flex items-center gap-1"><Lock className="w-3.5 h-3.5 text-orange-500" /> Locked date</span>
               </div>
             </div>
           )}
