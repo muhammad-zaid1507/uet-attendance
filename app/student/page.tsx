@@ -104,20 +104,20 @@ export default function StudentPage() {
         {/* Search */}
         <form onSubmit={search} className="bg-white rounded-2xl shadow p-6 mb-6 mt-4">
           <h2 className="font-semibold text-gray-700 mb-4">Enter Your Roll Number</h2>
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3">
             <input
               value={rollNo}
               onChange={e => setRollNo(e.target.value)}
-              placeholder="e.g. 2023-CS-001"
-              className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-green-400 transition-colors"
+              placeholder="e.g. 2023-CYS-001"
+              className="w-full border-2 border-gray-300 rounded-xl px-5 py-4 text-lg font-semibold text-gray-900 placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 transition-all bg-gray-50"
             />
             <button
               type="submit"
               disabled={loading}
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-colors disabled:opacity-60"
+              className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-colors disabled:opacity-60"
             >
-              <Search className="w-4 h-4" />
-              {loading ? 'Searching...' : 'Search'}
+              <Search className="w-5 h-5" />
+              {loading ? 'Searching...' : 'Check My Attendance'}
             </button>
           </div>
           {error && <p className="text-red-500 text-sm mt-3">{error}</p>}
