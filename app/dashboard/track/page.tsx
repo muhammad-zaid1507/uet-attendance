@@ -22,18 +22,30 @@ export default function TrackPage() {
   const [pendingSync, setPendingSync] = useState(false)
 
   useEffect(() => {
-    const supabase = createClient()
-    supabase.from('subjects').select('*').order('name').then(({ data }: { data: Subject[] | null }) => setSubjects(data ?? []))
-    supabase.from('students').select('*').order('roll_no').then(({ data }: { data: Student[] | null }) => {
-      setStudents(data ?? [])
-    })
     setIsOnline(navigator.onLine)
     const onOnline = () => setIsOnline(true)
     const onOffline = () => setIsOnline(false)
     window.addEventListener('online', onOnline)
     window.addEventListener('offline', onOffline)
-    // Check for pending offline data
     if (localStorage.getItem('offline_attendance')) setPendingSync(true)
+
+    // Load from cache first (instant, works offline)
+    const cachedSubjects = localStorage.getItem('cache_subjects')
+    const cachedStudents = localStorage.getItem('cache_students')
+    if (cachedSubjects) setSubjects(JSON.parse(cachedSubjects))
+    if (cachedStudents) setStudents(JSON.parse(cachedStudents))
+
+    // Then fetch fresh from server if online and update cache
+    if (navigator.onLine) {
+      const supabase = createClient()
+      supabase.from('subjects').select('*').order('name').then(({ data }: { data: Subject[] | null }) => {
+        if (data) { setSubjects(data); localStorage.setItem('cache_subjects', JSON.stringify(data)) }
+      })
+      supabase.from('students').select('*').order('roll_no').then(({ data }: { data: Student[] | null }) => {
+        if (data) { setStudents(data); localStorage.setItem('cache_students', JSON.stringify(data)) }
+      })
+    }
+
     return () => { window.removeEventListener('online', onOnline); window.removeEventListener('offline', onOffline) }
   }, [])
 
@@ -41,20 +53,23 @@ export default function TrackPage() {
 
   async function selectSubject(sub: Subject) {
     setSelectedSubject(sub)
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('attendance')
-      .select('student_id, status')
-      .eq('subject_id', sub.id)
-      .eq('date', date)
-
     const init: Record<string, Status> = {}
     students.forEach(s => { init[s.id] = 'absent' })
-    if (data && data.length > 0) {
-      data.forEach((r: { student_id: string; status: string }) => {
-        init[r.student_id] = r.status as Status
-      })
+
+    if (navigator.onLine) {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('attendance')
+        .select('student_id, status')
+        .eq('subject_id', sub.id)
+        .eq('date', date)
+      if (data && data.length > 0) {
+        data.forEach((r: { student_id: string; status: string }) => {
+          init[r.student_id] = r.status as Status
+        })
+      }
     }
+
     setMarks(init)
     setCurrentIndex(0)
     setStep('mark')
