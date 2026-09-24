@@ -67,7 +67,7 @@ export default function AttendanceSheetPage() {
     const headerRows: (string | number)[][] = [
       ['UET Lahore – Cybersecurity (CYS) Section C – 2025 Fall Morning'],
       [`Subject: ${sheet.subject.name} (${sheet.subject.code})`],
-      [`Total Classes: ${sheet.dates.length}   |   Powered by ARWA Travel`],
+      [`Total Classes: ${sheet.dates.length}   |   Powered by ARWA TRAVELS`],
       [],
       ['#', 'Roll No', 'Student Name', ...sheet.dates.map(d => formatDateShort(d)), 'Present', 'Late', 'Absent', 'Total', '%'],
     ]
@@ -139,7 +139,7 @@ export default function AttendanceSheetPage() {
     doc.text(`Subject: ${sheet.subject.name} (${sheet.subject.code})  |  Total Classes: ${sheet.dates.length}`, 14, 23)
     doc.setFontSize(6)
     doc.setTextColor(150)
-    doc.text('Powered by ARWA Travel', 14, 28)
+    doc.text('Powered by ARWA TRAVELS', 14, 28)
 
     const head = [['#', 'Roll No', 'Name', ...sheet.dates.map(d => formatDateShort(d)), 'P', 'L', 'A', '%']]
     const body = sheet.students.map((student, i) => {

@@ -7,11 +7,11 @@ export default function ArwaFooter() {
         target="_blank"
         rel="noopener noreferrer"
         className="inline-flex items-center gap-1.5 text-xs text-gray-300 hover:text-gray-500 transition-colors select-none"
-        title="ARWA Travel & Tours"
+        title="ARWA TRAVELS & Tours"
       >
         <span className="opacity-40">✦</span>
         <span className="opacity-50 tracking-widest uppercase font-light">Crafted by</span>
-        <span className="opacity-60 font-semibold tracking-wider">ARWA Travel</span>
+        <span className="opacity-60 font-semibold tracking-wider">ARWA TRAVELS</span>
         <span className="opacity-40">✦</span>
       </a>
     </footer>

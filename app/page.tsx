@@ -80,7 +80,7 @@ export default function Home() {
           rel="noopener noreferrer"
           className="block text-center mt-4 text-xs text-gray-300 hover:text-gray-400 transition-colors tracking-widest uppercase"
         >
-          ✦ Crafted by ARWA Travel ✦
+          ✦ Crafted by ARWA TRAVELS ✦
         </a>
       </div>
     </main>

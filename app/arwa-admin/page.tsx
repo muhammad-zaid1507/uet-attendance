@@ -134,7 +134,7 @@ export default function ArwaAdminPage() {
           </div>
         )}
 
-        <p className="text-center text-gray-600 text-xs mt-8">ARWA Travel · Internal Tool · {new Date().getFullYear()}</p>
+        <p className="text-center text-gray-600 text-xs mt-8">ARWA TRAVELS · Internal Tool · {new Date().getFullYear()}</p>
       </div>
     </div>
   )

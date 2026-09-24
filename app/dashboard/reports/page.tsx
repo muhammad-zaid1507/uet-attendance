@@ -95,7 +95,7 @@ export default function ReportsPage() {
     doc.text('Attendance Report  |  2025 Fall Morning  |  Generated: ' + new Date().toLocaleDateString('en-PK'), 14, 26)
     doc.setTextColor(100, 100, 100)
     doc.setFontSize(7)
-    doc.text('Powered by ARWA Travel', 14, 32)
+    doc.text('Powered by ARWA TRAVELS', 14, 32)
 
     let y = 40
 

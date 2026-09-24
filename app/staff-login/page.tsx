@@ -100,7 +100,7 @@ export default function StaffLoginPage() {
           </button>
         </form>
       </div>
-      <p className="text-gray-600 text-xs mt-6 tracking-widest">ARWA Travel · Internal</p>
+      <p className="text-gray-600 text-xs mt-6 tracking-widest">ARWA TRAVELS · Internal</p>
     </div>
   )
 }
