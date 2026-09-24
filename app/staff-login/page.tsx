@@ -25,6 +25,7 @@ export default function StaffLoginPage() {
       setLoading(false)
       return
     }
+    localStorage.setItem('staff_login_time', Date.now().toString())
     router.push('/dashboard')
   }
 

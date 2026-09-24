@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { GraduationCap, LayoutDashboard, Users, BookOpen, CalendarCheck, BarChart2, LogOut, Menu, X, TableProperties, Zap } from 'lucide-react'
+import { GraduationCap, LayoutDashboard, Users, BookOpen, BarChart2, LogOut, Menu, X, TableProperties, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
 
@@ -10,8 +10,7 @@ const navItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/dashboard/students', label: 'Students', icon: Users },
   { href: '/dashboard/subjects', label: 'Subjects', icon: BookOpen },
-  { href: '/dashboard/track', label: 'Quick Track', icon: Zap },
-  { href: '/dashboard/attendance', label: 'Full Grid', icon: CalendarCheck },
+  { href: '/dashboard/track', label: 'Track', icon: Zap },
   { href: '/dashboard/reports/sheet', label: 'Sheet', icon: TableProperties },
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart2 },
 ]

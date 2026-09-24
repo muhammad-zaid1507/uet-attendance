@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Subject, Student } from '@/lib/types'
-import { CheckCircle2, XCircle, Save, ChevronRight, Calendar, BookOpen, ChevronLeft, RotateCcw } from 'lucide-react'
+import { CheckCircle2, XCircle, Save, ChevronRight, Calendar, BookOpen, ChevronLeft, RotateCcw, WifiOff, RefreshCw } from 'lucide-react'
 
 type Status = 'present' | 'absent'
 type Step = 'date' | 'subject' | 'mark'
@@ -17,6 +17,9 @@ export default function TrackPage() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [savedOffline, setSavedOffline] = useState(false)
+  const [isOnline, setIsOnline] = useState(true)
+  const [pendingSync, setPendingSync] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -24,6 +27,14 @@ export default function TrackPage() {
     supabase.from('students').select('*').order('roll_no').then(({ data }: { data: Student[] | null }) => {
       setStudents(data ?? [])
     })
+    setIsOnline(navigator.onLine)
+    const onOnline = () => setIsOnline(true)
+    const onOffline = () => setIsOnline(false)
+    window.addEventListener('online', onOnline)
+    window.addEventListener('offline', onOffline)
+    // Check for pending offline data
+    if (localStorage.getItem('offline_attendance')) setPendingSync(true)
+    return () => { window.removeEventListener('online', onOnline); window.removeEventListener('offline', onOffline) }
   }, [])
 
   const formatDateDisplay = (d: string) => new Date(d).toLocaleDateString('en-PK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
@@ -65,24 +76,75 @@ export default function TrackPage() {
   async function save() {
     if (!selectedSubject) return
     setSaving(true)
+    const payload = {
+      subject_id: selectedSubject.id,
+      subject_name: selectedSubject.name,
+      date,
+      marks: Object.fromEntries(students.map(s => [s.id, marks[s.id] ?? 'absent'])),
+    }
+
+    if (!navigator.onLine) {
+      // Save offline
+      const existing = JSON.parse(localStorage.getItem('offline_attendance') ?? '[]')
+      const idx = existing.findIndex((r: typeof payload) => r.subject_id === payload.subject_id && r.date === payload.date)
+      if (idx >= 0) existing[idx] = payload; else existing.push(payload)
+      localStorage.setItem('offline_attendance', JSON.stringify(existing))
+      setSaving(false)
+      setSavedOffline(true)
+      setPendingSync(true)
+      return
+    }
+
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      const upserts = students.map(s => ({
+        student_id: s.id,
+        subject_id: selectedSubject.id,
+        date,
+        status: marks[s.id] ?? 'absent',
+        marked_by: user?.id ?? '',
+      }))
+      await supabase.from('attendance').upsert(upserts, { onConflict: 'student_id,subject_id,date' })
+      setSaving(false)
+      setSaved(true)
+    } catch {
+      // Network failed mid-save — save offline
+      const existing = JSON.parse(localStorage.getItem('offline_attendance') ?? '[]')
+      existing.push(payload)
+      localStorage.setItem('offline_attendance', JSON.stringify(existing))
+      setSaving(false)
+      setSavedOffline(true)
+      setPendingSync(true)
+    }
+  }
+
+  async function syncOffline() {
+    const raw = localStorage.getItem('offline_attendance')
+    if (!raw) return
+    const pending: { subject_id: string; subject_name: string; date: string; marks: Record<string, string> }[] = JSON.parse(raw)
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    const upserts = students.map(s => ({
-      student_id: s.id,
-      subject_id: selectedSubject.id,
-      date,
-      status: marks[s.id] ?? 'absent',
-      marked_by: user?.id ?? '',
-    }))
-    await supabase.from('attendance').upsert(upserts, { onConflict: 'student_id,subject_id,date' })
-    setSaving(false)
-    setSaved(true)
+    for (const entry of pending) {
+      const upserts = students.map(s => ({
+        student_id: s.id,
+        subject_id: entry.subject_id,
+        date: entry.date,
+        status: entry.marks[s.id] ?? 'absent',
+        marked_by: user?.id ?? '',
+      }))
+      await supabase.from('attendance').upsert(upserts, { onConflict: 'student_id,subject_id,date' })
+    }
+    localStorage.removeItem('offline_attendance')
+    setPendingSync(false)
+    alert(`✅ Synced ${pending.length} session(s) to server!`)
   }
 
   function reset() {
     setStep('date')
     setSelectedSubject(null)
     setSaved(false)
+    setSavedOffline(false)
     setCurrentIndex(0)
     setMarks({})
   }
@@ -93,6 +155,39 @@ export default function TrackPage() {
   const isLast = currentIndex === students.length - 1
   const currentStudent = students[currentIndex]
   const progress = students.length > 0 ? ((currentIndex) / students.length) * 100 : 0
+
+  // ── SAVED OFFLINE ──
+  if (savedOffline) {
+    return (
+      <div className="max-w-md mx-auto">
+        <div className="bg-white rounded-2xl shadow-lg p-8 text-center mt-8">
+          <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <WifiOff className="w-9 h-9 text-orange-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">Saved Offline</h2>
+          <p className="text-gray-500 text-sm mb-1">{selectedSubject?.name}</p>
+          <p className="text-gray-400 text-sm mb-3">{formatDateDisplay(date)}</p>
+          <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 mb-5 text-sm text-orange-700">
+            No internet detected. Attendance saved on this device.<br />
+            <strong>Sync when you&apos;re back online.</strong>
+          </div>
+          <div className="flex gap-3 justify-center mb-6">
+            <div className="bg-green-50 rounded-xl px-5 py-3 text-center">
+              <p className="text-2xl font-bold text-green-600">{presentCount}</p>
+              <p className="text-xs text-green-600 font-medium">Present</p>
+            </div>
+            <div className="bg-red-50 rounded-xl px-5 py-3 text-center">
+              <p className="text-2xl font-bold text-red-500">{absentCount}</p>
+              <p className="text-xs text-red-500 font-medium">Absent</p>
+            </div>
+          </div>
+          <button onClick={reset} className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-semibold transition-colors">
+            Mark Another Class
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   // ── SAVED ──
   if (saved) {
@@ -129,6 +224,23 @@ export default function TrackPage() {
 
   return (
     <div className="max-w-lg mx-auto">
+      {/* Offline warning banner */}
+      {!isOnline && (
+        <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 text-orange-700 rounded-xl px-4 py-3 mb-4 text-sm font-medium">
+          <WifiOff className="w-4 h-4 shrink-0" />
+          No internet — attendance will be saved offline on this device
+        </div>
+      )}
+      {/* Pending sync banner */}
+      {pendingSync && isOnline && (
+        <div className="flex items-center justify-between bg-blue-50 border border-blue-200 text-blue-700 rounded-xl px-4 py-3 mb-4 text-sm">
+          <span className="font-medium">📶 You&apos;re back online! Offline data waiting to sync.</span>
+          <button onClick={syncOffline} className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors shrink-0 ml-3">
+            <RefreshCw className="w-3.5 h-3.5" /> Sync Now
+          </button>
+        </div>
+      )}
+
       <div className="mb-4">
         <h1 className="text-2xl font-bold text-gray-900">Quick Track</h1>
         <p className="text-gray-500 text-sm">One by one — fast in-class marking</p>

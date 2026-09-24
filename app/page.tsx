@@ -2,13 +2,21 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { BookOpen } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 
 export default function Home() {
   const router = useRouter()
   const [taps, setTaps] = useState(0)
   const [hint, setHint] = useState(false)
+
+  // Always sign out when home page loads — staff must re-login every time
+  useEffect(() => {
+    import('@/lib/supabase/client').then(({ createClient }) => {
+      createClient().auth.signOut()
+    })
+    localStorage.removeItem('staff_login_time')
+  }, [])
 
   function handleLogoTap() {
     const next = taps + 1
