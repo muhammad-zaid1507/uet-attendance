@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { BookOpen } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
 
 export default function Home() {
   const router = useRouter()
@@ -40,13 +39,13 @@ export default function Home() {
               className="rounded-full bg-white shadow-lg p-2 active:scale-95 transition-transform select-none focus:outline-none hover:shadow-xl"
               title="UET Lahore"
             >
-              <Image
+              <img
                 src="https://www.uet.edu.pk/gallery/logo.jpg"
                 alt="UET Lahore"
                 width={80}
                 height={80}
                 className="rounded-full object-contain"
-                unoptimized
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
               />
             </button>
           </div>
