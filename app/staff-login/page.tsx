@@ -36,13 +36,13 @@ export default function StaffLoginPage() {
         <div className="text-center mb-7">
           <div className="flex justify-center mb-3">
             <div className="bg-white rounded-full p-1 shadow-lg">
-              <Image
+              <img
                 src="https://www.uet.edu.pk/gallery/logo.jpg"
                 alt="UET Lahore"
                 width={64}
                 height={64}
                 className="rounded-full object-contain"
-                unoptimized
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
               />
             </div>
           </div>
