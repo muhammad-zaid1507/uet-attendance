@@ -8,13 +8,13 @@ import { Users, BookOpen, TrendingDown, FileDown } from 'lucide-react'
 
 interface StudentReport {
   student: Student
-  subjects: { subject: Subject; present: number; late: number; total: number; pct: number }[]
+  subjects: { subject: Subject; present: number; total: number; pct: number }[]
   overall: number
 }
 
 interface SubjectReport {
   subject: Subject
-  students: { student: Student; present: number; late: number; total: number; pct: number }[]
+  students: { student: Student; present: number; total: number; pct: number }[]
   avgPct: number
   totalDates: number
 }
@@ -49,7 +49,7 @@ export default function ReportsPage() {
         const rows = attList.filter(r => r.student_id === student.id && r.subject_id === subject.id)
         const present = rows.filter(r => r.status === 'present').length
         const total = rows.length
-        return { subject, present, late: 0, total, pct: calcPercentage(present, total) }
+        return { subject, present, total, pct: calcPercentage(present, total) }
       }).filter(s => s.total > 0)
 
       const totalP = subjectData.reduce((a, b) => a + b.present, 0)
@@ -65,7 +65,7 @@ export default function ReportsPage() {
         const srows = rows.filter(r => r.student_id === student.id)
         const present = srows.filter(r => r.status === 'present').length
         const total = srows.length
-        return { student, present, late: 0, total, pct: calcPercentage(present, total) }
+        return { student, present, total, pct: calcPercentage(present, total) }
       }).filter(s => s.total > 0)
 
       const avg = studentData.length > 0
@@ -107,8 +107,8 @@ export default function ReportsPage() {
         y += 4
         autoTable(doc, {
           startY: y,
-          head: [['Subject', 'Code', 'Present', 'Late', 'Absent', 'Total', '%']],
-          body: sr.subjects.map(s => [s.subject.name, s.subject.code, s.present, s.late, s.total - s.present - s.late, s.total, `${s.pct}%`]),
+          head: [['Subject', 'Code', 'Present', 'Absent', 'Total', '%']],
+          body: sr.subjects.map(s => [s.subject.name, s.subject.code, s.present, s.total - s.present, s.total, `${s.pct}%`]),
           styles: { fontSize: 8, cellPadding: 2 },
           headStyles: { fillColor: [22, 101, 52] },
           margin: { left: 14, right: 14 },
@@ -124,8 +124,8 @@ export default function ReportsPage() {
         y += 4
         autoTable(doc, {
           startY: y,
-          head: [['Roll No', 'Name', 'Present', 'Late', 'Absent', 'Total', '%']],
-          body: sr.students.sort((a, b) => a.pct - b.pct).map(s => [s.student.roll_no, s.student.name, s.present, s.late, s.total - s.present - s.late, s.total, `${s.pct}%`]),
+          head: [['Roll No', 'Name', 'Present', 'Absent', 'Total', '%']],
+          body: sr.students.sort((a, b) => a.pct - b.pct).map(s => [s.student.roll_no, s.student.name, s.present, s.total - s.present, s.total, `${s.pct}%`]),
           styles: { fontSize: 8, cellPadding: 2 },
           headStyles: { fillColor: [29, 78, 216] },
           margin: { left: 14, right: 14 },
@@ -152,7 +152,7 @@ export default function ReportsPage() {
       student: sr.student,
       subject: s.subject,
       pct: s.pct,
-      present: s.present + s.late,
+      present: s.present,
       total: s.total,
     }))
   ).sort((a, b) => a.pct - b.pct)
@@ -215,7 +215,7 @@ export default function ReportsPage() {
                       <tr className="bg-gray-50">
                         <th className="px-5 py-2 text-left font-semibold text-gray-600">Subject</th>
                         <th className="px-4 py-2 text-center font-semibold text-gray-600">Present</th>
-                        <th className="px-4 py-2 text-center font-semibold text-gray-600">Late</th>
+                        <th className="px-4 py-2 text-center font-semibold text-gray-600">Absent</th>
                         <th className="px-4 py-2 text-center font-semibold text-gray-600">Total</th>
                         <th className="px-4 py-2 text-center font-semibold text-gray-600">%</th>
                       </tr>
@@ -228,7 +228,7 @@ export default function ReportsPage() {
                             <span className="ml-2 text-gray-900">{s.subject.name}</span>
                           </td>
                           <td className="px-4 py-2.5 text-center text-green-700 font-medium">{s.present}</td>
-                          <td className="px-4 py-2.5 text-center text-yellow-600 font-medium">{s.late}</td>
+                          <td className="px-4 py-2.5 text-center text-red-500 font-medium">{s.total - s.present}</td>
                           <td className="px-4 py-2.5 text-center text-gray-600">{s.total}</td>
                           <td className="px-4 py-2.5 text-center">
                             <span className={`text-xs font-bold px-2 py-1 rounded-full ${statusBg(s.pct)}`}>{s.pct}%</span>
@@ -276,7 +276,7 @@ export default function ReportsPage() {
                         <th className="px-4 py-2 text-left font-semibold text-gray-600">Roll No</th>
                         <th className="px-4 py-2 text-left font-semibold text-gray-600">Name</th>
                         <th className="px-4 py-2 text-center font-semibold text-gray-600">Present</th>
-                        <th className="px-4 py-2 text-center font-semibold text-gray-600">Late</th>
+                        <th className="px-4 py-2 text-center font-semibold text-gray-600">Absent</th>
                         <th className="px-4 py-2 text-center font-semibold text-gray-600">Total</th>
                         <th className="px-4 py-2 text-center font-semibold text-gray-600">%</th>
                       </tr>
@@ -287,7 +287,7 @@ export default function ReportsPage() {
                           <td className="px-4 py-2.5 font-mono text-xs text-gray-600">{s.student.roll_no}</td>
                           <td className="px-4 py-2.5 font-medium text-gray-900">{s.student.name}</td>
                           <td className="px-4 py-2.5 text-center text-green-700 font-medium">{s.present}</td>
-                          <td className="px-4 py-2.5 text-center text-yellow-600 font-medium">{s.late}</td>
+                          <td className="px-4 py-2.5 text-center text-red-500 font-medium">{s.total - s.present}</td>
                           <td className="px-4 py-2.5 text-center text-gray-600">{s.total}</td>
                           <td className="px-4 py-2.5 text-center">
                             <span className={`text-xs font-bold px-2 py-1 rounded-full ${statusBg(s.pct)}`}>{s.pct}%</span>
