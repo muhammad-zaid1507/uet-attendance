@@ -76,7 +76,7 @@ export default function StudentPage() {
     }
 
     // Only show subjects that have at least one record for this student
-    const studentSubjectIds = new Set((records ?? []).map(r => r.subject_id))
+    const studentSubjectIds = new Set((records ?? []).map((r: { subject_id: string }) => r.subject_id))
 
     const map: Record<string, SubjectSummary> = {}
     for (const [subId, info] of Object.entries(subjectDates)) {
