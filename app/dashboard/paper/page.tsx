@@ -24,7 +24,7 @@ export default function PaperPage() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.from('subjects').select('*').order('name').then(({ data }) => {
+    supabase.from('subjects').select('*').order('name').then(({ data }: { data: Subject[] | null }) => {
       setSubjects(data ?? [])
       if (data && data.length > 0) setSelSubject(data[0].id)
     })

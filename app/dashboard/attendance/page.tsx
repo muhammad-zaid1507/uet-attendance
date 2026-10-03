@@ -57,7 +57,7 @@ export default function AttendancePage() {
     }
 
     const allDates = Array.from(dateSet).sort()
-    const explicitlyLocked = new Set((locks ?? []).map((l: { date: string }) => l.date))
+    const explicitlyLocked = new Set<string>((locks ?? []).map((l: { date: string }) => l.date))
 
     // Auto-lock any date that has no lock record yet (locked by default)
     const missingLocks = allDates.filter(d => !explicitlyLocked.has(d))
