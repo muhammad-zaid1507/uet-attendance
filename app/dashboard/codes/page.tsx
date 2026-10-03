@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Subject } from '@/lib/types'
-import { Plus, Clock, Trash2, Copy, Check, RefreshCw, ShieldOff } from 'lucide-react'
+import { Plus, Clock, Trash2, Copy, Check, RefreshCw, ShieldOff, Users, CheckCircle2 } from 'lucide-react'
 
 interface AttendanceCode {
   id: string
@@ -31,6 +31,9 @@ export default function CodesPage() {
   const [useCustom, setUseCustom] = useState(false)
 
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [watchCode, setWatchCode] = useState<AttendanceCode | null>(null)
+  const [liveStudents, setLiveStudents] = useState<{ name: string; roll_no: string; marked_at: string }[]>([])
+  const [liveLoading, setLiveLoading] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -40,6 +43,34 @@ export default function CodesPage() {
     })
     loadCodes()
   }, [])
+
+  // Poll live students every 8s when watching a code
+  useEffect(() => {
+    if (!watchCode) return
+    fetchLiveStudents(watchCode)
+    const interval = setInterval(() => fetchLiveStudents(watchCode), 8000)
+    return () => clearInterval(interval)
+  }, [watchCode])
+
+  async function fetchLiveStudents(code: AttendanceCode) {
+    setLiveLoading(true)
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('attendance')
+      .select('student_id, created_at, students(name, roll_no)')
+      .eq('subject_id', code.subject_id)
+      .eq('date', code.date)
+      .eq('status', 'present')
+      .gte('created_at', code.created_at)
+      .order('created_at', { ascending: false })
+
+    const list = (data ?? []).map((r: { student_id: string; created_at: string; students: unknown }) => {
+      const s = Array.isArray(r.students) ? r.students[0] : r.students as { name: string; roll_no: string } | null
+      return { name: s?.name ?? '—', roll_no: s?.roll_no ?? '—', marked_at: r.created_at }
+    })
+    setLiveStudents(list)
+    setLiveLoading(false)
+  }
 
   async function loadCodes() {
     setLoading(true)
@@ -203,6 +234,13 @@ export default function CodesPage() {
                       {copiedId === c.id ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                     </button>
                   )}
+                {!dead && (
+                    <button onClick={() => setWatchCode(watchCode?.id === c.id ? null : c)}
+                      title="Watch live"
+                      className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg font-semibold transition-colors ${watchCode?.id === c.id ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500 hover:bg-blue-50 hover:text-blue-600'}`}>
+                      <Users className="w-3.5 h-3.5" /> Live
+                    </button>
+                  )}
                 </div>
 
                 {/* Actions */}
@@ -233,6 +271,48 @@ export default function CodesPage() {
           )
         })}
       </div>
+
+      {/* Live students panel */}
+      {watchCode && (
+        <div className="bg-white rounded-2xl shadow mt-6 overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b bg-blue-50">
+            <div>
+              <p className="font-bold text-blue-800 flex items-center gap-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse inline-block" />
+                Live — {watchCode.subjects?.name}
+              </p>
+              <p className="text-xs text-blue-600 mt-0.5">Code <span className="font-mono font-bold">{watchCode.code}</span> · refreshes every 8s</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="bg-blue-600 text-white text-sm font-bold px-3 py-1 rounded-full">{liveStudents.length} present</span>
+              <button onClick={() => setWatchCode(null)} className="text-blue-400 hover:text-blue-700 text-sm">✕</button>
+            </div>
+          </div>
+
+          {liveStudents.length === 0 ? (
+            <div className="px-5 py-8 text-center text-gray-400 text-sm">
+              {liveLoading ? 'Loading...' : 'Waiting for students to mark attendance...'}
+            </div>
+          ) : (
+            <div className="divide-y max-h-72 overflow-y-auto">
+              {liveStudents.map((s, i) => (
+                <div key={i} className="flex items-center justify-between px-5 py-3">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                    <div>
+                      <p className="font-semibold text-gray-900 text-sm">{s.name}</p>
+                      <p className="text-xs text-gray-400 font-mono">{s.roll_no}</p>
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-400">
+                    {new Date(s.marked_at).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <p className="text-center text-gray-400 text-xs mt-6">
         Share the 6-digit code with your class. Students go to <span className="font-mono">uet-attendance.vercel.app</span> → Mark Attendance with Code

@@ -19,6 +19,7 @@ export default function AttendancePage() {
   const [saving, setSaving] = useState(false)
   const [newDate, setNewDate] = useState('')
   const [dirty, setDirty] = useState(false)
+  const [editingEnabled, setEditingEnabled] = useState(false)
 
   // Lock/unlock modal state
   const [lockModal, setLockModal] = useState<{ date: string; action: 'lock' | 'unlock' } | null>(null)
@@ -64,7 +65,7 @@ export default function AttendancePage() {
   }
 
   function toggleStatus(studentId: string, date: string) {
-    if (lockedDates.has(date)) return
+    if (!editingEnabled || lockedDates.has(date)) return
     const current = records[studentId]?.[date] ?? 'absent'
     const next = statusCycle[(statusCycle.indexOf(current) + 1) % statusCycle.length]
     setRecords(prev => ({ ...prev, [studentId]: { ...(prev[studentId] ?? {}), [date]: next } }))
@@ -173,9 +174,10 @@ export default function AttendancePage() {
   }
 
   const statusCell = (s: Status, locked: boolean) => {
-    const base = locked ? 'opacity-60 cursor-not-allowed ' : 'cursor-pointer '
-    if (s === 'present') return base + 'bg-green-50 hover:bg-green-100'
-    return base + 'bg-red-50 hover:bg-red-100'
+    const disabled = locked || !editingEnabled
+    const base = disabled ? 'opacity-60 cursor-not-allowed ' : 'cursor-pointer '
+    if (s === 'present') return base + (disabled ? 'bg-green-50' : 'bg-green-50 hover:bg-green-100')
+    return base + (disabled ? 'bg-red-50' : 'bg-red-50 hover:bg-red-100')
   }
 
   const subjectName = subjects.find(s => s.id === selectedSubject)?.name ?? ''
@@ -231,15 +233,28 @@ export default function AttendancePage() {
 
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Mark Attendance</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Edit / Lock</h1>
           {subjectName && <p className="text-gray-500 text-sm">{subjectName}</p>}
         </div>
-        {dirty && (
-          <button onClick={saveAll} disabled={saving} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors disabled:opacity-60 shadow-md animate-pulse">
-            <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Changes'}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setEditingEnabled(e => !e)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all border-2 ${editingEnabled ? 'bg-green-50 border-green-500 text-green-700' : 'bg-orange-50 border-orange-400 text-orange-700'}`}
+          >
+            {editingEnabled ? <><Unlock className="w-4 h-4" /> Editing ON</> : <><Lock className="w-4 h-4" /> Editing OFF</>}
           </button>
-        )}
+          {dirty && (
+            <button onClick={saveAll} disabled={saving} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors disabled:opacity-60 shadow-md animate-pulse">
+              <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          )}
+        </div>
       </div>
+      {!editingEnabled && (
+        <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 text-orange-700 rounded-xl px-4 py-3 mb-4 text-sm font-medium">
+          <Lock className="w-4 h-4 shrink-0" /> Editing is OFF — click the button above to enable changes
+        </div>
+      )}
 
       {/* Subject selector */}
       <div className="bg-white rounded-2xl shadow p-5 mb-5">
