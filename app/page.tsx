@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { BookOpen } from 'lucide-react'
+import { BookOpen, Hash } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
 export default function Home() {
@@ -57,18 +57,33 @@ export default function Home() {
           <p className="text-gray-500 text-sm mt-1">2025 Fall Morning</p>
         </div>
 
-        {/* Student card only */}
-        <Link href="/student" className="block group">
-          <div className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all border-2 border-transparent hover:border-green-400 flex items-center gap-4">
-            <div className="bg-green-100 rounded-xl p-3 group-hover:bg-green-200 transition-colors">
-              <BookOpen className="w-7 h-7 text-green-700" />
+        <div className="space-y-3">
+          {/* View attendance */}
+          <Link href="/student" className="block group">
+            <div className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all border-2 border-transparent hover:border-green-400 flex items-center gap-4">
+              <div className="bg-green-100 rounded-xl p-3 group-hover:bg-green-200 transition-colors">
+                <BookOpen className="w-7 h-7 text-green-700" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">View My Attendance</h2>
+                <p className="text-gray-500 text-sm">Enter your roll number to check attendance</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-gray-900">View My Attendance</h2>
-              <p className="text-gray-500 text-sm">Enter your roll number to check attendance</p>
+          </Link>
+
+          {/* Mark with code */}
+          <Link href="/mark" className="block group">
+            <div className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all border-2 border-transparent hover:border-blue-400 flex items-center gap-4">
+              <div className="bg-blue-100 rounded-xl p-3 group-hover:bg-blue-200 transition-colors">
+                <Hash className="w-7 h-7 text-blue-700" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Mark Attendance</h2>
+                <p className="text-gray-500 text-sm">Enter class code given by CR</p>
+              </div>
             </div>
-          </div>
-        </Link>
+          </Link>
+        </div>
 
         <p className="text-center text-gray-400 text-xs mt-8">
           Department of Computer Science · UET Lahore
