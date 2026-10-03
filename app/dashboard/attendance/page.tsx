@@ -71,8 +71,13 @@ export default function AttendancePage() {
     setDirty(true)
   }
 
-  function addDate() {
+  async function addDate() {
     if (!newDate || dates.includes(newDate)) return
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    // Lock the new date immediately by default
+    await supabase.from('attendance_locks').upsert({ subject_id: selectedSubject, date: newDate, locked_by: user?.id ?? '' })
+    setLockedDates(prev => new Set([...prev, newDate]))
     setDates(prev => [...prev, newDate].sort())
     setRecords(prev => {
       const next = { ...prev }
@@ -83,7 +88,6 @@ export default function AttendancePage() {
       return next
     })
     setNewDate('')
-    setDirty(true)
   }
 
   async function deleteDate(date: string) {
