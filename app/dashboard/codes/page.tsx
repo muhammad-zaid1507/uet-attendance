@@ -125,7 +125,7 @@ export default function CodesPage() {
           <div>
             <label className="block text-sm font-semibold text-gray-600 mb-1.5">Subject</label>
             <select value={selSubject} onChange={e => setSelSubject(e.target.value)}
-              className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-green-400 bg-white">
+              className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 focus:outline-none focus:border-green-400 bg-white">
               {subjects.map(s => <option key={s.id} value={s.id}>{s.code} · {s.name}</option>)}
             </select>
           </div>
@@ -134,7 +134,7 @@ export default function CodesPage() {
           <div>
             <label className="block text-sm font-semibold text-gray-600 mb-1.5">Date</label>
             <input type="date" value={selDate} onChange={e => setSelDate(e.target.value)}
-              className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-green-400" />
+              className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 focus:outline-none focus:border-green-400" />
           </div>
 
           {/* Expiry */}
