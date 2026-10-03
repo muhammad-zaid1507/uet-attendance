@@ -123,7 +123,7 @@ export default function MarkPage() {
       subject_id: codeRow.subject_id,
       date: codeInfo.date,
       status: 'present',
-      marked_by: studentId,
+      marked_by: null,
     }, { onConflict: 'student_id,subject_id,date' })
 
     if (insErr) {
