@@ -56,9 +56,23 @@ export default function AttendancePage() {
       dateSet.add(r.date)
     }
 
+    const allDates = Array.from(dateSet).sort()
+    const explicitlyLocked = new Set((locks ?? []).map((l: { date: string }) => l.date))
+
+    // Auto-lock any date that has no lock record yet (locked by default)
+    const missingLocks = allDates.filter(d => !explicitlyLocked.has(d))
+    if (missingLocks.length > 0) {
+      const { data: { user } } = await supabase.auth.getUser()
+      await supabase.from('attendance_locks').upsert(
+        missingLocks.map(d => ({ subject_id: selectedSubject, date: d, locked_by: user?.id ?? '' })),
+        { onConflict: 'subject_id,date' }
+      )
+      missingLocks.forEach(d => explicitlyLocked.add(d))
+    }
+
     setRecords(newRecords)
-    setDates(Array.from(dateSet).sort())
-    setLockedDates(new Set((locks ?? []).map((l: { date: string }) => l.date)))
+    setDates(allDates)
+    setLockedDates(explicitlyLocked)
     setDirty(false)
     setLoading(false)
   }
