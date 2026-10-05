@@ -43,29 +43,36 @@ export default function ReportsPage() {
     const subList: Subject[] = subs ?? []
     const attList: { student_id: string; subject_id: string; date: string; status: string }[] = att ?? []
 
-    // Build student reports
+    // Pre-compute total dates per subject (across all students = ground truth)
+    const subjectTotalDates: Record<string, number> = {}
+    for (const sub of subList) {
+      const dates = new Set(attList.filter(r => r.subject_id === sub.id).map(r => r.date))
+      subjectTotalDates[sub.id] = dates.size
+    }
+
+    // Build student reports — use subjectTotalDates as denominator so missing records count as absent
     const sReports: StudentReport[] = studList.map(student => {
       const subjectData = subList.map(subject => {
+        const totalDates = subjectTotalDates[subject.id] ?? 0
+        if (totalDates === 0) return null
         const rows = attList.filter(r => r.student_id === student.id && r.subject_id === subject.id)
         const present = rows.filter(r => r.status === 'present').length
-        const total = rows.length
-        return { subject, present, total, pct: calcPercentage(present, total) }
-      }).filter(s => s.total > 0)
+        return { subject, present, total: totalDates, pct: calcPercentage(present, totalDates) }
+      }).filter((s): s is { subject: Subject; present: number; total: number; pct: number } => s !== null && s.total > 0)
 
       const totalP = subjectData.reduce((a, b) => a + b.present, 0)
       const totalT = subjectData.reduce((a, b) => a + b.total, 0)
       return { student, subjects: subjectData, overall: calcPercentage(totalP, totalT) }
     })
 
-    // Build subject reports
+    // Build subject reports — same fix
     const subReports: SubjectReport[] = subList.map(subject => {
       const rows = attList.filter(r => r.subject_id === subject.id)
-      const totalDates = new Set(rows.map(r => r.date)).size
+      const totalDates = subjectTotalDates[subject.id] ?? 0
       const studentData = studList.map(student => {
         const srows = rows.filter(r => r.student_id === student.id)
         const present = srows.filter(r => r.status === 'present').length
-        const total = srows.length
-        return { student, present, total, pct: calcPercentage(present, total) }
+        return { student, present, total: totalDates, pct: calcPercentage(present, totalDates) }
       }).filter(s => s.total > 0)
 
       const avg = studentData.length > 0
