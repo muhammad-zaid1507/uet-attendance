@@ -3,16 +3,16 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDateShort, calcPercentage, statusBg } from '@/lib/utils'
 import Link from 'next/link'
-import { ArrowLeft, Search, CheckCircle2, XCircle, Clock } from 'lucide-react'
+import { ArrowLeft, Search, CheckCircle2, XCircle } from 'lucide-react'
 
 interface SubjectSummary {
   subject_id: string
   subject_name: string
   subject_code: string
   dates: string[]
-  statuses: ('present' | 'absent' | 'late')[]
+  statuses: ('present' | 'absent' | 'leave')[]
   present: number
-  late: number
+  leave: number
   total: number
 }
 
@@ -69,10 +69,10 @@ export default function StudentPage() {
     }
 
     // Build student's status lookup
-    const studentStatus: Record<string, Record<string, 'present' | 'absent' | 'late'>> = {}
+    const studentStatus: Record<string, Record<string, 'present' | 'absent' | 'leave'>> = {}
     for (const r of records ?? []) {
       if (!studentStatus[r.subject_id]) studentStatus[r.subject_id] = {}
-      studentStatus[r.subject_id][r.date] = r.status as 'present' | 'absent' | 'late'
+      studentStatus[r.subject_id][r.date] = r.status as 'present' | 'absent' | 'leave'
     }
 
     // Only show subjects that have at least one record for this student
@@ -82,9 +82,9 @@ export default function StudentPage() {
     for (const [subId, info] of Object.entries(subjectDates)) {
       if (!studentSubjectIds.has(subId)) continue
       const sortedDates = Array.from(info.dates).sort()
-      const statuses = sortedDates.map(d => studentStatus[subId]?.[d] ?? 'absent' as 'present' | 'absent' | 'late')
+      const statuses = sortedDates.map(d => studentStatus[subId]?.[d] ?? 'absent' as 'present' | 'absent' | 'leave')
       const present = statuses.filter(s => s === 'present').length
-      const late = statuses.filter(s => s === 'late').length
+      const leave = statuses.filter(s => s === 'leave').length
       map[subId] = {
         subject_id: subId,
         subject_name: info.name,
@@ -92,7 +92,7 @@ export default function StudentPage() {
         dates: sortedDates,
         statuses,
         present,
-        late,
+        leave,
         total: sortedDates.length,
       }
     }
@@ -104,7 +104,7 @@ export default function StudentPage() {
 
   const statusIcon = (s: string) => {
     if (s === 'present') return <CheckCircle2 className="w-4 h-4 text-green-600" />
-    if (s === 'late') return <Clock className="w-4 h-4 text-yellow-500" />
+    if (s === 'leave') return <span className="text-xs font-bold text-blue-500">L</span>
     return <XCircle className="w-4 h-4 text-red-500" />
   }
 
@@ -160,7 +160,7 @@ export default function StudentPage() {
             ) : (
               <div className="space-y-4">
                 {subjects.map(sub => {
-                  const pct = calcPercentage(sub.present + sub.late, sub.total)
+
                   return (
                     <div key={sub.subject_id} className="bg-white rounded-2xl shadow overflow-hidden">
                       {/* Subject header */}
@@ -170,10 +170,10 @@ export default function StudentPage() {
                           <h3 className="font-bold text-gray-900 text-base">{sub.subject_name}</h3>
                         </div>
                         <div className="text-right">
-                          <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${statusBg(pct)}`}>
-                            {pct}%
+                          <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${statusBg(calcPercentage(sub.present, sub.total))}`}>
+                            {calcPercentage(sub.present, sub.total)}%
                           </span>
-                          <p className="text-xs text-gray-400 mt-1">{sub.present + sub.late}/{sub.total} classes</p>
+                          <p className="text-xs text-gray-400 mt-1">{sub.present}/{sub.total} classes</p>
                         </div>
                       </div>
 
@@ -192,8 +192,8 @@ export default function StudentPage() {
                       {/* Legend */}
                       <div className="px-4 pb-3 flex gap-4 text-xs text-gray-500">
                         <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-600" /> Present ({sub.present})</span>
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-yellow-500" /> Late ({sub.late})</span>
-                        <span className="flex items-center gap-1"><XCircle className="w-3 h-3 text-red-500" /> Absent ({sub.total - sub.present - sub.late})</span>
+                        <span className="flex items-center gap-1 font-bold text-blue-500">L Leave ({sub.leave})</span>
+                        <span className="flex items-center gap-1"><XCircle className="w-3 h-3 text-red-500" /> Absent ({sub.total - sub.present - sub.leave})</span>
                       </div>
                     </div>
                   )

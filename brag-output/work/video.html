@@ -1,0 +1,648 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>UET Attendance demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=block" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<script src="lucide.min.js"></script>
+<style>
+  html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #022c22; }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; font-family: Arial, Helvetica, sans-serif; }
+  #stage *, #stage ::before, #stage ::after { border-color: #e5e7eb; }
+  .abs { position: absolute; }
+  .brand { font-family: 'Plus Jakarta Sans', Arial, sans-serif; }
+  .layer { position: absolute; inset: 0; }
+  #bgDark { background: radial-gradient(1200px 800px at 50% 40%, #065f46 0%, #064e3b 35%, #022c22 100%); }
+  #bgLight { background: linear-gradient(135deg, #f0fdf4 0%, #d1fae5 100%); }
+  .blob { position: absolute; border-radius: 9999px; filter: blur(80px); }
+  .tile { width: 150px; height: 190px; border-radius: 28px; display: flex; align-items: center; justify-content: center;
+          font-family: 'Plus Jakarta Sans'; font-weight: 800; font-size: 118px; color: #fff;
+          background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.18); }
+  .phone { width: 412px; height: 860px; border-radius: 66px; background: #0d1412; padding: 13px; box-sizing: border-box;
+           box-shadow: 0 50px 100px -20px rgba(6,78,59,.45), 0 0 0 2px #26302d inset; }
+  .screen { position: relative; width: 386px; height: 834px; border-radius: 54px; overflow: hidden; }
+  .island { position: absolute; top: 11px; left: 50%; width: 118px; height: 34px; margin-left: -59px; border-radius: 20px; background: #000; z-index: 20; }
+  .statusbar { position: absolute; top: 0; left: 0; right: 0; height: 54px; display: flex; align-items: center; justify-content: space-between;
+               padding: 6px 34px 0; box-sizing: border-box; font: 600 16px 'Plus Jakarta Sans'; z-index: 19; }
+  .browser { width: 1000px; height: 850px; border-radius: 18px; overflow: hidden; background: #f9fafb;
+             box-shadow: 0 50px 100px -20px rgba(6,78,59,.40), 0 0 0 1px rgba(0,0,0,.06); }
+  .chrome { height: 50px; background: #eef1f0; display: flex; align-items: center; padding: 0 18px; gap: 8px; border-bottom: 1px solid #e2e6e4; }
+  .dot { width: 13px; height: 13px; border-radius: 99px; }
+  .url { margin-left: 22px; flex: 1; height: 32px; border-radius: 9px; background: #fff; display: flex; align-items: center; padding: 0 14px;
+         font: 500 15px 'Plus Jakarta Sans'; color: #4b5563; gap: 8px; }
+  .tap { position: absolute; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 99px; background: rgba(17,24,39,.12);
+         border: 2px solid rgba(255,255,255,.9); box-shadow: 0 4px 14px rgba(0,0,0,.18); pointer-events: none; z-index: 50; opacity: 0; }
+  .ring { position: absolute; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 99px; border: 3px solid #16a34a; opacity: 0; pointer-events: none; z-index: 60; }
+  .caret { display: inline-block; width: 2px; height: 1em; background: #16a34a; vertical-align: -0.12em; margin-left: 1px; }
+  .seg { height: 6px; border-radius: 6px; background: rgba(6,95,70,.15); flex: 1; overflow: hidden; }
+  .seg > div { height: 100%; background: #16a34a; border-radius: 6px; width: 0; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <!-- Backgrounds -->
+  <div id="bgLight" class="layer"></div>
+  <div id="bgDark" class="layer"></div>
+  <div id="blobA" class="blob" style="width:620px;height:620px;background:#34d399;"></div>
+  <div id="blobB" class="blob" style="width:520px;height:520px;background:#10b981;"></div>
+
+  <!-- ===== S1 HOOK ===== -->
+  <div id="s1" class="layer">
+    <div id="s1kicker" class="abs brand" style="top:250px;left:0;right:0;text-align:center;color:#6ee7b7;font-size:24px;font-weight:700;letter-spacing:.32em;">UET LAHORE · CYS SECTION C</div>
+    <div id="tiles" class="abs" style="top:330px;left:0;right:0;display:flex;justify-content:center;gap:22px;">
+      <div class="tile">4</div><div class="tile">8</div><div class="tile">2</div><div class="tile">9</div><div class="tile">1</div><div class="tile">7</div>
+    </div>
+    <div id="s1line" class="abs brand" style="top:600px;left:0;right:0;text-align:center;color:#fff;font-size:76px;font-weight:800;letter-spacing:-.02em;">
+      One code. <span style="color:#6ee7b7">Whole class present.</span>
+    </div>
+  </div>
+
+  <!-- ===== S2 INTRO ===== -->
+  <div id="s2" class="layer">
+    <div id="s2logo" class="abs" style="top:190px;left:0;right:0;display:flex;justify-content:center;">
+      <div class="bg-white rounded-3xl shadow-lg" style="padding:18px 34px;"><img src="uet-logo.jpg" style="width:330px;height:110px;display:block;"></div>
+    </div>
+    <div id="s2title" class="abs brand" style="top:372px;left:0;right:0;text-align:center;font-size:120px;font-weight:800;color:#111827;letter-spacing:-.035em;">UET Attendance</div>
+    <div id="s2sub" class="abs brand" style="top:530px;left:0;right:0;text-align:center;font-size:36px;font-weight:500;color:#15803d;">A 4-step tour · CYS Section C · 2025 Fall</div>
+    <div id="s2badge" class="abs" style="top:650px;left:0;right:0;display:flex;justify-content:center;">
+      <div class="bg-white rounded-full shadow-xl flex items-center brand" style="padding:14px 38px 14px 14px;gap:20px;">
+        <div style="width:84px;height:84px;border-radius:99px;background:linear-gradient(135deg,#059669,#064e3b);display:flex;align-items:center;justify-content:center;color:#fff;font-size:40px;font-weight:800;">Z</div>
+        <div>
+          <div style="font-size:18px;color:#6b7280;font-weight:600;letter-spacing:.18em;">PRESENTED BY</div>
+          <div style="font-size:36px;color:#111827;font-weight:800;line-height:1.1;">Zaid <span style="color:#9ca3af;font-weight:500;">·</span> <span style="color:#065f46;letter-spacing:.06em;">ARWA TRAVELS</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Captions for steps ===== -->
+  <div id="captions" class="abs" style="left:150px;top:0;width:600px;height:1080px;">
+    <div class="cap abs" data-step="1" style="top:330px;left:0;width:600px;"></div>
+    <div class="cap abs" data-step="2" style="top:330px;left:0;width:600px;"></div>
+    <div class="cap abs" data-step="3" style="top:330px;left:0;width:600px;"></div>
+    <div class="cap abs" data-step="4" style="top:330px;left:0;width:600px;"></div>
+    <div id="progress" class="abs" style="top:770px;left:0;width:420px;display:flex;gap:10px;">
+      <div class="seg"><div></div></div><div class="seg"><div></div></div><div class="seg"><div></div></div><div class="seg"><div></div></div>
+    </div>
+  </div>
+
+  <!-- ===== Browser (Steps 1 & 3) ===== -->
+  <div id="browserWrap" class="abs" style="left:800px;top:115px;">
+    <div class="browser">
+      <div class="chrome">
+        <div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div>
+        <div class="url"><i data-lucide="lock" style="width:14px;height:14px;color:#16a34a"></i>uet-attendance.vercel.app<span style="color:#9ca3af">/dashboard/codes</span></div>
+      </div>
+      <div style="position:relative;height:800px;overflow:hidden;">
+        <div id="bscroll" class="min-h-screen bg-gray-50" style="position:absolute;left:0;right:0;top:0;">
+          <!-- DashboardNav -->
+          <header class="bg-blue-700 text-white px-4 py-3 flex items-center justify-between shadow-md">
+            <div class="flex items-center gap-3">
+              <i data-lucide="graduation-cap" class="w-7 h-7"></i>
+              <div>
+                <span class="font-bold text-base leading-tight block">UET Attendance</span>
+                <span class="text-blue-200 text-xs">CYS Section C · 2025 Fall</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-blue-800 px-4 py-2 rounded-lg text-sm font-medium"><i data-lucide="log-out" class="w-4 h-4"></i> Logout</div>
+          </header>
+          <nav class="bg-white border-b shadow-sm overflow-hidden">
+            <div class="flex">
+              <div class="flex items-center gap-2 px-5 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-transparent text-gray-600"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Overview</div>
+              <div class="flex items-center gap-2 px-5 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-transparent text-gray-600"><i data-lucide="users" class="w-4 h-4"></i>Students</div>
+              <div class="flex items-center gap-2 px-5 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-transparent text-gray-600"><i data-lucide="book-open" class="w-4 h-4"></i>Subjects</div>
+              <div class="flex items-center gap-2 px-5 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-transparent text-gray-600"><i data-lucide="zap" class="w-4 h-4"></i>Track</div>
+              <div class="flex items-center gap-2 px-5 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-blue-600 text-blue-700 bg-blue-50"><i data-lucide="key-round" class="w-4 h-4"></i>Codes</div>
+              <div class="flex items-center gap-2 px-5 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-transparent text-gray-600"><i data-lucide="file-text" class="w-4 h-4"></i>Paper</div>
+              <div class="flex items-center gap-2 px-5 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-transparent text-gray-600"><i data-lucide="calendar-check" class="w-4 h-4"></i>Edit / Lock</div>
+              <div class="flex items-center gap-2 px-5 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-transparent text-gray-600"><i data-lucide="table-properties" class="w-4 h-4"></i>Sheet</div>
+            </div>
+          </nav>
+          <main class="max-w-6xl mx-auto p-4 pt-6">
+            <div class="max-w-2xl mx-auto">
+              <div class="mb-6">
+                <h1 class="text-2xl font-bold text-gray-900">Attendance Codes</h1>
+                <p class="text-gray-500 text-sm mt-1">Generate a code → share with class → students mark themselves present</p>
+              </div>
+              <div class="bg-white rounded-2xl shadow p-6 mb-6">
+                <h2 class="font-bold text-gray-800 mb-4 flex items-center gap-2"><i data-lucide="plus" class="w-5 h-5 text-green-600"></i> Generate New Code</h2>
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1.5">Subject</label>
+                    <div class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 bg-white flex justify-between items-center">CS-101 · Programming Fundamentals <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i></div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1.5">Date</label>
+                    <div class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 flex justify-between items-center">10/03/2026 <i data-lucide="calendar" class="w-4 h-4 text-gray-500"></i></div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1.5">Expiry Time</label>
+                    <div class="flex gap-2 flex-wrap mb-2">
+                      <div class="preset px-4 py-2 rounded-xl text-sm font-semibold border-2" data-m="5">5 min</div>
+                      <div class="preset px-4 py-2 rounded-xl text-sm font-semibold border-2" data-m="10" id="btn10">10 min</div>
+                      <div class="preset px-4 py-2 rounded-xl text-sm font-semibold border-2" data-m="15">15 min</div>
+                      <div class="preset px-4 py-2 rounded-xl text-sm font-semibold border-2" data-m="30">30 min</div>
+                      <div class="px-4 py-2 rounded-xl text-sm font-semibold border-2 border-gray-200 text-gray-600">Custom</div>
+                    </div>
+                  </div>
+                  <div id="btnGen" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2">
+                    <i data-lucide="plus" class="w-5 h-5"></i><span id="genLabel">Generate Code</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Codes list -->
+              <div class="bg-white rounded-2xl shadow overflow-hidden">
+                <div class="flex items-center justify-between px-5 py-4 border-b">
+                  <h2 class="font-bold text-gray-800">Recent Codes</h2>
+                  <i data-lucide="refresh-cw" class="w-4 h-4 text-gray-400"></i>
+                </div>
+                <div id="newRowWrap" style="overflow:hidden;height:0;">
+                  <div id="newRow" class="border-b px-5 py-4">
+                    <div class="flex items-center justify-between gap-3">
+                      <div class="flex items-center gap-3">
+                        <div class="text-2xl font-bold tracking-[0.2em] font-mono text-green-700">482917</div>
+                        <i data-lucide="copy" class="w-4 h-4 text-gray-400"></i>
+                        <div id="btnLive" class="flex items-center gap-1 text-xs px-2 py-1 rounded-lg font-semibold"><i data-lucide="users" class="w-3.5 h-3.5"></i> Live</div>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <i data-lucide="shield-off" class="w-4 h-4 text-orange-400"></i>
+                        <i data-lucide="trash-2" class="w-4 h-4 text-red-400"></i>
+                      </div>
+                    </div>
+                    <div class="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+                      <span class="font-semibold text-gray-700">Programming Fundamentals</span>
+                      <span>3 Oct 2026</span>
+                      <span class="flex items-center gap-1 font-medium text-orange-600"><i data-lucide="clock" class="w-3 h-3"></i><span id="countdown">9m 59s left</span></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="px-5 py-4 opacity-50">
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="text-2xl font-bold tracking-[0.2em] font-mono text-gray-400">715208</div>
+                    <i data-lucide="trash-2" class="w-4 h-4 text-red-400"></i>
+                  </div>
+                  <div class="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+                    <span class="font-semibold text-gray-700">Digital Logic Design</span><span>2 Oct 2026</span>
+                    <span class="flex items-center gap-1 font-medium text-gray-400"><i data-lucide="clock" class="w-3 h-3"></i>Expired</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Live panel -->
+              <div id="livePanel" class="bg-white rounded-2xl shadow mt-6 overflow-hidden">
+                <div class="flex items-center justify-between px-5 py-4 border-b bg-blue-50">
+                  <div>
+                    <p class="font-bold text-blue-800 flex items-center gap-2">
+                      <span id="liveDot" class="w-2 h-2 bg-green-500 rounded-full inline-block"></span>
+                      Live — Programming Fundamentals
+                    </p>
+                    <p class="text-xs text-blue-600 mt-0.5">Code <span class="font-mono font-bold">482917</span> · refreshes every 8s</p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <span id="liveCount" class="bg-blue-600 text-white text-sm font-bold px-3 py-1 rounded-full" style="display:inline-block">0 present</span>
+                    <span class="text-blue-400 text-sm">✕</span>
+                  </div>
+                </div>
+                <div id="liveWaiting" class="px-5 py-8 text-center text-gray-400 text-sm">Waiting for students to mark attendance...</div>
+                <div id="liveList" style="height:0;overflow:hidden;"></div>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Phone (Steps 2 & 4) ===== -->
+  <div id="phoneWrap" class="abs" style="left:1100px;top:110px;">
+    <div class="phone"><div class="screen">
+      <div class="island"></div>
+      <div class="statusbar" id="sbar"><span>9:41</span><span style="display:flex;gap:6px;align-items:center;">
+        <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="5" y="5" width="3" height="7" rx="1" fill="currentColor"/><rect x="10" y="2.5" width="3" height="9.5" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+        <svg width="26" height="13" viewBox="0 0 26 13"><rect x=".5" y=".5" width="22" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2.5" y="2.5" width="16" height="8" rx="2" fill="currentColor"/><rect x="24" y="4.5" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".5"/></svg>
+      </span></div>
+
+      <!-- /mark page -->
+      <div id="markPage" class="layer bg-gradient-to-br from-green-50 to-emerald-100">
+        <div class="abs" style="left:21px;right:21px;top:92px;">
+          <div class="text-center mb-6">
+            <div class="inline-flex items-center gap-1 text-gray-400 text-sm mb-4"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</div>
+            <h1 class="text-2xl font-bold text-gray-900">Mark Attendance</h1>
+            <p class="text-gray-500 text-sm mt-1">Enter your number and class code</p>
+          </div>
+          <div style="position:relative;">
+            <!-- step enter -->
+            <div id="mEnter" class="bg-white rounded-2xl shadow-lg p-6 space-y-4" style="position:absolute;left:0;right:0;top:0;">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Your Student Number</label>
+                <div class="relative">
+                  <i data-lucide="hash" class="absolute left-3 w-4 h-4 text-gray-400" style="top:19px"></i>
+                  <div id="inNum" class="w-full pl-9 pr-4 py-3.5 border-2 border-gray-200 rounded-xl text-lg font-semibold text-gray-900 bg-gray-50" style="height:56px;box-sizing:border-box;line-height:24px;"></div>
+                </div>
+                <p class="text-xs text-gray-400 mt-1">Last part of your roll no — e.g. <span class="font-mono">2025-CYS-<strong>121</strong></span> → enter <strong>121</strong></p>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Class Code</label>
+                <div id="inCode" class="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl text-2xl font-bold text-center tracking-[0.4em] text-gray-900 bg-gray-50" style="height:64px;box-sizing:border-box;line-height:32px;"></div>
+                <p class="text-xs text-gray-400 mt-1 text-center">Ask your CR for the code</p>
+              </div>
+              <div id="btnVerify" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-base text-center"><span id="verifyLabel">Verify →</span></div>
+            </div>
+            <!-- step confirm -->
+            <div id="mConfirm" class="bg-white rounded-2xl shadow-lg p-6" style="position:absolute;left:0;right:0;top:0;">
+              <div class="text-center mb-5">
+                <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="book-open" class="w-7 h-7 text-green-600"></i></div>
+                <p class="text-gray-500 text-sm">Marking present for</p>
+              </div>
+              <div class="bg-green-50 rounded-xl p-4 mb-4 text-center">
+                <p class="text-xs text-green-600 font-mono mb-0.5">CS-101</p>
+                <p class="text-lg font-bold text-gray-900">Programming Fundamentals</p>
+                <p class="text-sm text-gray-500 mt-1">Saturday, 3 October 2026</p>
+              </div>
+              <div class="bg-blue-50 rounded-xl px-4 py-3 mb-5">
+                <p class="text-sm text-gray-700">Student: <span class="font-bold">Ali Raza</span></p>
+                <p class="text-xs text-gray-400 mt-0.5">Code expires at 10:10 am</p>
+              </div>
+              <div id="btnConfirm" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-base text-center mb-3"><span id="confirmLabel">✓ Confirm Present</span></div>
+              <div class="w-full text-gray-400 py-2 text-sm text-center">← Go back</div>
+            </div>
+            <!-- step done -->
+            <div id="mDone" class="bg-white rounded-2xl shadow-lg p-8 text-center" style="position:absolute;left:0;right:0;top:0;">
+              <div id="doneIcon" class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"><i data-lucide="circle-check" class="w-9 h-9 text-green-600"></i></div>
+              <h2 class="text-2xl font-bold text-gray-900 mb-1">Marked Present!</h2>
+              <p class="text-gray-500 text-sm mb-1">Ali Raza</p>
+              <p class="text-green-700 font-semibold mb-1">Programming Fundamentals</p>
+              <p class="text-gray-400 text-sm mb-6">Saturday, 3 October 2026</p>
+              <div class="block w-full bg-green-600 text-white py-3 rounded-xl font-semibold">Done</div>
+            </div>
+          </div>
+        </div>
+        <p class="abs text-center text-gray-300 text-xs tracking-widest" style="left:0;right:0;bottom:40px;">✦ ARWA TRAVELS ✦</p>
+      </div>
+
+      <!-- /student page -->
+      <div id="studentPage" class="layer bg-gray-50">
+        <div style="height:54px;" class="bg-green-600"></div>
+        <div class="bg-green-600 text-white px-4 py-3 flex items-center gap-3">
+          <div class="p-1"><i data-lucide="arrow-left" class="w-5 h-5"></i></div>
+          <div>
+            <h1 class="font-bold text-lg leading-tight">My Attendance</h1>
+            <p class="text-green-200 text-xs">UET · CYS Section C · 2025 Fall</p>
+          </div>
+        </div>
+        <div class="p-4">
+          <div class="sp bg-green-600 text-white rounded-2xl p-4 mb-4 shadow">
+            <p class="text-green-200 text-xs uppercase tracking-wider">Student</p>
+            <p class="text-xl font-bold mt-1">Ali Raza</p>
+            <p class="text-green-200 text-sm">2025-CYS-121</p>
+          </div>
+          <div class="space-y-3" id="subjCards"></div>
+        </div>
+      </div>
+      <div id="tap" class="tap"></div>
+    </div></div>
+  </div>
+
+  <!-- watermark -->
+  <div id="wm" class="abs brand" style="left:150px;bottom:64px;font-size:20px;font-weight:700;letter-spacing:.16em;color:#065f46;">
+    ✦ PRESENTED BY ZAID · ARWA TRAVELS ✦
+  </div>
+
+  <!-- ===== S7 OUTRO ===== -->
+  <div id="s7" class="layer">
+    <div id="o1" class="abs brand" style="top:250px;left:0;right:0;text-align:center;color:#fff;font-size:110px;font-weight:800;letter-spacing:-.035em;">UET Attendance</div>
+    <div id="o2" class="abs" style="top:400px;left:0;right:0;text-align:center;"><span class="brand" style="display:inline-block;padding:12px 30px;border-radius:999px;background:rgba(110,231,183,.12);border:1.5px solid rgba(110,231,183,.35);color:#a7f3d0;font-size:34px;font-weight:600;">uet-attendance.vercel.app</span></div>
+    <div id="o3" class="abs" style="top:540px;left:0;right:0;display:flex;justify-content:center;"><div style="width:120px;height:2px;background:rgba(231,200,115,.6);"></div></div>
+    <div id="o4" class="abs brand" style="top:590px;left:0;right:0;text-align:center;color:#6ee7b7;font-size:24px;font-weight:700;letter-spacing:.32em;">PRESENTED BY</div>
+    <div id="o5" class="abs brand" style="top:630px;left:0;right:0;text-align:center;color:#fff;font-size:84px;font-weight:800;letter-spacing:-.02em;">Zaid</div>
+    <div id="o6" class="abs brand" style="top:752px;left:0;right:0;text-align:center;color:#e7c873;font-size:40px;font-weight:700;letter-spacing:.34em;">✦ ARWA TRAVELS ✦</div>
+  </div>
+
+  <div id="cursor" class="abs" style="left:0;top:0;z-index:70;opacity:0;">
+    <svg width="34" height="44" viewBox="0 0 34 44" style="filter:drop-shadow(0 4px 6px rgba(0,0,0,.3))"><path d="M3 2 L3 34 L11 27 L16.5 40 L22 37.6 L16.6 25 L28 25 Z" fill="#111827" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/></svg>
+  </div>
+  <div id="ring" class="ring"></div>
+</div>
+
+<script>
+// ---------- data ----------
+const CAPS = [
+  { n: '01', t: 'CR generates<br>a class code', s: 'Pick the subject, set an expiry, share the 6 digits.' },
+  { n: '02', t: 'Students mark<br>themselves', s: 'Their number + the class code, on any phone.' },
+  { n: '03', t: 'Watch the class<br>fill in live', s: 'Every check-in shows up as it happens.' },
+  { n: '04', t: 'Students check<br>their own %', s: 'Every subject, colour-coded at a glance.' },
+];
+const ROWS = [
+  ['Ali Raza','2025-CYS-121','10:01 am'],['Ayesha Khan','2025-CYS-104','10:01 am'],['Hamza Tariq','2025-CYS-117','10:01 am'],
+  ['Fatima Noor','2025-CYS-109','10:01 am'],['Usman Ghani','2025-CYS-132','10:02 am'],['Zainab Iqbal','2025-CYS-126','10:02 am'],
+  ['Bilal Ahmed','2025-CYS-113','10:02 am'],['Maryam Siddiqui','2025-CYS-138','10:02 am'],['Hassan Raza','2025-CYS-102','10:02 am'],
+  ['Iqra Javed','2025-CYS-129','10:02 am'],['Saad Malik','2025-CYS-111','10:02 am'],['Hira Aslam','2025-CYS-135','10:03 am'],
+  ['Talha Shah','2025-CYS-107','10:03 am'],['Areeba Yousaf','2025-CYS-120','10:03 am'],['Abdullah Nadeem','2025-CYS-125','10:03 am'],
+  ['Sana Farooq','2025-CYS-116','10:03 am'],['Ahmed Hussain','2025-CYS-131','10:03 am'],['Noor Fatima','2025-CYS-108','10:03 am'],
+];
+const SUBJ = [
+  { code: 'CS-101', name: 'Programming Fundamentals', pct: 92, pr: 11, tot: 12, st: 'PPPPPAPPPPPP' },
+  { code: 'MATH-101', name: 'Calculus & Analytical Geometry', pct: 83, pr: 10, tot: 12, st: 'PPAPPPPPAPPP' },
+  { code: 'PHY-101', name: 'Applied Physics', pct: 67, pr: 8, tot: 12, st: 'PAPPAPPAPPAP' },
+];
+const DATES = ['08 Sep','10 Sep','15 Sep','17 Sep','22 Sep','24 Sep','29 Sep','01 Oct','03 Oct','06 Oct','08 Oct','10 Oct'];
+
+// timeline (seconds)
+const T = { s2: 3.4, s3: 7.0, s4: 13.2, s5: 20.4, s6: 25.6, s7: 29.8, end: 34.5 };
+window.DURATION = T.end;
+// sound cue sheet, exported for the audio renderer
+window.CUES = [];
+
+// ---------- build dynamic DOM (once) ----------
+document.querySelectorAll('.cap').forEach((el, i) => {
+  const c = CAPS[i];
+  el.innerHTML = `
+    <div class="capA brand" style="display:inline-block;background:#16a34a;color:#fff;font-weight:800;font-size:22px;letter-spacing:.16em;padding:10px 22px;border-radius:999px;">STEP ${c.n}</div>
+    <div class="capB brand" style="margin-top:28px;font-size:76px;line-height:1.02;font-weight:800;color:#0f172a;letter-spacing:-.03em;">${c.t}</div>
+    <div class="capC brand" style="margin-top:28px;font-size:30px;line-height:1.35;font-weight:500;color:#475569;width:520px;">${c.s}</div>`;
+});
+const list = document.getElementById('liveList');
+for (let i = ROWS.length - 1; i >= 0; i--) {
+  const [name, roll, time] = ROWS[i];
+  const w = document.createElement('div');
+  w.className = 'lrow'; w.dataset.i = i; w.style.overflow = 'hidden'; w.style.height = '0px';
+  w.innerHTML = `<div class="lrowIn flex items-center justify-between px-5 py-3" style="height:57px;box-sizing:border-box;border-top:1px solid #e5e7eb;">
+      <div class="flex items-center gap-3"><i data-lucide="circle-check" class="w-4 h-4 text-green-600 shrink-0"></i>
+      <div><p class="font-semibold text-gray-900 text-sm">${name}</p><p class="text-xs text-gray-400 font-mono">${roll}</p></div></div>
+      <span class="text-xs text-gray-400">${time}</span></div>`;
+  list.appendChild(w);
+}
+const sc = document.getElementById('subjCards');
+SUBJ.forEach(s => {
+  const bg = s.pct >= 75 ? 'bg-green-100 text-green-800' : s.pct >= 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800';
+  const icons = s.st.split('').map((c, i) => `<div class="flex flex-col items-center gap-1"><span class="text-gray-400 whitespace-nowrap" style="font-size:10px">${DATES[i]}</span>${c==='P' ? '<i data-lucide="circle-check" class="w-4 h-4 text-green-600"></i>' : '<i data-lucide="circle-x" class="w-4 h-4 text-red-500"></i>'}</div>`).join('');
+  sc.insertAdjacentHTML('beforeend', `<div class="sp bg-white rounded-2xl shadow overflow-hidden">
+    <div class="flex items-center justify-between px-4 py-3 border-b">
+      <div><span class="text-xs text-gray-400 font-mono">${s.code}</span><h3 class="font-bold text-gray-900 text-sm">${s.name}</h3></div>
+      <div class="text-right"><span class="pct inline-block px-3 py-1 rounded-full text-sm font-bold ${bg}" data-p="${s.pct}">${s.pct}%</span><p class="text-xs text-gray-400 mt-1">${s.pr}/${s.tot} classes</p></div>
+    </div>
+    <div class="px-3 py-3 overflow-hidden"><div class="flex gap-2">${icons}</div></div></div>`);
+});
+lucide.createIcons();
+
+// ---------- helpers ----------
+const $ = id => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const P = (t, a, d) => clamp((t - a) / d);
+const out3 = x => 1 - Math.pow(1 - x, 3);
+const inOut = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const back = x => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const lerp = (a, b, x) => a + (b - a) * x;
+// visibility envelope: in over [a, a+di], out over [b, b+do]
+function env(t, a, di, b, dout) { return out3(P(t, a, di)) * (1 - inOut(P(t, b, dout))); }
+function set(el, o, x = 0, y = 0, s = 1) {
+  if (typeof el === 'string') el = $(el);
+  el.style.opacity = o;
+  el.style.transform = `translate(${x}px,${y}px) scale(${s})`;
+  el.style.visibility = o <= 0.001 ? 'hidden' : 'visible';
+}
+// enter-from-below / exit-up element
+function rise(el, t, a, b, dist = 30, di = .55, dout = .35) {
+  const i = out3(P(t, a, di)), o = inOut(P(t, b, dout));
+  set(el, i * (1 - o), 0, (1 - i) * dist - o * dist * .6);
+}
+function center(el) { const r = (typeof el === 'string' ? $(el) : el).getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }
+
+// cursor waypoints: [startMove, arrive, targetFn]
+const CUR = [
+  [7.70, 7.70, () => [1560, 1010]],
+  [7.75, 8.45, () => { const c = center('btn10'); return [c[0] + 6, c[1] + 4]; }],
+  [8.80, 9.45, () => { const c = center('btnGen'); return [c[0] + 30, c[1] + 6]; }],
+  [10.75, 11.40, () => { const c = center('btnLive'); return [c[0] + 4, c[1] + 4]; }],
+  [11.8, 12.5, () => [1700, 1000]],
+];
+const CLICKS = [8.55, 9.55, 11.5];
+function cursorPos(t) {
+  let pos = CUR[0][2]();
+  for (let i = 1; i < CUR.length; i++) {
+    const [s, a, f] = CUR[i];
+    if (t < s) break;
+    pos = [lerp(pos[0], f()[0], inOut(P(t, s, a - s))), lerp(pos[1], f()[1], inOut(P(t, s, a - s)))];
+  }
+  return pos;
+}
+
+function typed(t, text, a, per) { const n = clamp(Math.floor((t - a) / per) + 1, 0, text.length); return t < a ? '' : text.slice(0, n); }
+function caret(t, on) { return on && (Math.floor(t * 2.2) % 2 === 0) ? '<span class="caret"></span>' : ''; }
+
+// ---------- render ----------
+function render(t) {
+  // backgrounds: dark for hook + outro, light for the tour
+  const dark = 1 - inOut(P(t, 3.15, .55)) + inOut(P(t, T.s7 - .25, .6));
+  $('bgDark').style.opacity = clamp(dark);
+  const bA = $('blobA').style, bB = $('blobB').style;
+  bA.left = (-160 + 140 * Math.sin(t * .23)) + 'px'; bA.top = (-180 + 90 * Math.cos(t * .19)) + 'px'; bA.opacity = .35 * clamp(dark) + .28 * (1 - clamp(dark));
+  bB.left = (1460 + 120 * Math.cos(t * .21)) + 'px'; bB.top = (640 + 80 * Math.sin(t * .27)) + 'px'; bB.opacity = .30 * clamp(dark) + .22 * (1 - clamp(dark));
+
+  // ===== S1 hook =====
+  const s1o = 1 - inOut(P(t, 3.0, .35));
+  set('s1', s1o, 0, -inOut(P(t, 3.0, .35)) * 30);
+  set('s1kicker', out3(P(t, .1, .5)), 0, (1 - out3(P(t, .1, .5))) * 12);
+  document.querySelectorAll('.tile').forEach((el, i) => {
+    const a = .2 + i * .14, x = P(t, a, .45);
+    const g = P(t, 1.15 + i * .06, .25);
+    el.style.opacity = clamp(x * 3);
+    el.style.transform = `translateY(${(1 - back(x)) * -90}px)`;
+    el.style.background = `rgba(${Math.round(lerp(255, 22, g))},${Math.round(lerp(255, 163, g))},${Math.round(lerp(255, 74, g))},${lerp(.08, 1, g)})`;
+    el.style.borderColor = `rgba(110,231,183,${lerp(.18, .9, g)})`;
+  });
+  rise($('s1line'), t, 1.25, 99, 26);
+
+  // ===== S2 intro =====
+  const s2out = T.s3 - .45;
+  rise($('s2logo'), t, 3.55, s2out, 30);
+  rise($('s2title'), t, 3.7, s2out, 30);
+  rise($('s2sub'), t, 3.9, s2out, 24);
+  rise($('s2badge'), t, 4.15, s2out, 24);
+
+  // ===== captions (steps) =====
+  const capWin = [[T.s3 + .2, T.s4 - .35], [T.s4 + .2, T.s5 - .35], [T.s5 + .2, T.s6 - .35], [T.s6 + .2, T.s7 - .45]];
+  document.querySelectorAll('.cap').forEach((el, i) => {
+    const [a, b] = capWin[i];
+    el.style.visibility = (t > a - .1 && t < b + .5) ? 'visible' : 'hidden';
+    rise(el.querySelector('.capA'), t, a, b, 20);
+    rise(el.querySelector('.capB'), t, a + .1, b, 30);
+    rise(el.querySelector('.capC'), t, a + .22, b, 24);
+  });
+  const progO = env(t, T.s3 + .2, .5, T.s7 - .45, .35);
+  set('progress', progO);
+  document.querySelectorAll('.seg > div').forEach((el, i) => {
+    const a = [T.s3, T.s4, T.s5, T.s6][i] + .3;
+    el.style.width = (out3(P(t, a, .6)) * 100) + '%';
+  });
+  set('wm', env(t, T.s3 + .5, .6, T.s7 - .45, .35) * .55);
+
+  // ===== browser (steps 1 & 3) =====
+  const bIn1 = out3(P(t, T.s3 + .1, .65)), bOut1 = inOut(P(t, T.s4 - .4, .4));
+  const bIn2 = out3(P(t, T.s5 + .05, .6)), bOut2 = inOut(P(t, T.s6 - .4, .4));
+  let bo, by;
+  if (t < T.s4 + .5) { bo = bIn1 * (1 - bOut1); by = (1 - bIn1) * 60 - bOut1 * 40; }
+  else { bo = bIn2 * (1 - bOut2); by = (1 - bIn2) * 60 - bOut2 * 40; }
+  set('browserWrap', bo, 0, by, lerp(.97, 1, t < T.s4 + .5 ? bIn1 : bIn2));
+
+  // presets: default 15 selected, switch to 10 on click
+  const sel = t >= CLICKS[0] ? 10 : 15;
+  document.querySelectorAll('.preset').forEach(el => {
+    const on = +el.dataset.m === sel;
+    el.style.borderColor = on ? '#22c55e' : '#e5e7eb';
+    el.style.background = on ? '#f0fdf4' : '#fff';
+    el.style.color = on ? '#15803d' : '#4b5563';
+  });
+  // generate button
+  const press = c => 1 - .035 * Math.sin(Math.PI * P(t, c - .02, .18));
+  $('btnGen').style.transform = `scale(${press(CLICKS[1])})`;
+  const generating = t >= CLICKS[1] && t < 9.95;
+  $('genLabel').textContent = generating ? 'Generating...' : 'Generate Code';
+  $('btnGen').style.opacity = generating ? .5 : 1;
+  // new code row grows in
+  const rowIn = out3(P(t, 9.95, .45));
+  $('newRowWrap').style.height = (rowIn * 87) + 'px';
+  $('newRow').style.background = `rgba(240,253,244,${(1 - P(t, 10.4, 1.4))})`;
+  // countdown, 10 minutes from creation
+  const left = Math.max(0, 600 - Math.floor(Math.max(0, t - 9.95)) - 1);
+  $('countdown').textContent = `${Math.floor(left / 60)}m ${left % 60}s left`;
+  // live button active after click
+  const liveOn = t >= CLICKS[2];
+  $('btnLive').style.background = liveOn ? '#dbeafe' : '#f3f4f6';
+  $('btnLive').style.color = liveOn ? '#1d4ed8' : '#6b7280';
+  // live panel visible after clicking live
+  const lp = out3(P(t, CLICKS[2] + .05, .4));
+  $('livePanel').style.opacity = lp; $('livePanel').style.visibility = lp > 0 ? 'visible' : 'hidden';
+  $('liveDot').style.opacity = .55 + .45 * Math.sin(t * 6);
+  // scroll: step 1 scrolls to show codes; step 3 shows the live panel
+  let scroll = inOut(P(t, 10.1, .8)) * 360 + inOut(P(t, 11.6, .7)) * 60;
+  if (t >= T.s4 + .5) scroll = 545;
+  $('bscroll').style.transform = `translateY(${-scroll}px)`;
+
+  // live check-ins (step 3)
+  const L = t - T.s5;
+  const pops = [];
+  let acc = .9, gap = .42;
+  for (let i = 0; i < ROWS.length; i++) { pops.push(acc); acc += gap; gap = Math.max(.13, gap * .86); }
+  window.POPS = pops.map(p => p + T.s5);
+  let n = 0;
+  document.querySelectorAll('.lrow').forEach(el => {
+    const i = +el.dataset.i, a = pops[i];
+    const k = t >= T.s4 + .5 ? out3(P(L, a, .28)) : 0;
+    if (t >= T.s4 + .5 && L >= a) n = Math.max(n, i + 1);
+    el.style.height = (k * 57) + 'px';
+    el.querySelector('.lrowIn').style.background = `rgba(220,252,231,${k > 0 ? 1 - P(L, a + .2, .9) : 0})`;
+  });
+  const visibleRows = Math.min(n, 5);
+  list.style.height = Math.min(288, document.querySelectorAll('.lrow').length && [...document.querySelectorAll('.lrow')].reduce((h, el) => h + parseFloat(el.style.height), 0)) + 'px';
+  $('liveWaiting').style.display = n === 0 && !(t >= T.s4 + .5 && L > pops[0]) ? 'block' : 'none';
+  if (t >= T.s4 + .5 && L >= pops[0]) $('liveWaiting').style.display = 'none';
+  $('liveCount').textContent = `${n} present`;
+  const lastPop = n > 0 ? pops[n - 1] : -9;
+  $('liveCount').style.transform = `scale(${1 + .12 * (1 - P(L, lastPop, .22)) * (n > 0 ? 1 : 0)})`;
+
+  // cursor
+  const cOn = env(t, 7.7, .3, 12.3, .3);
+  const [cx, cy] = cursorPos(t);
+  const cur = $('cursor');
+  cur.style.opacity = cOn; cur.style.visibility = cOn > 0 ? 'visible' : 'hidden';
+  const cDown = CLICKS.some(c => t >= c - .03 && t < c + .12);
+  cur.style.transform = `translate(${cx - 3}px,${cy - 2}px) scale(${cDown ? .88 : 1})`;
+  // click ring
+  const ring = $('ring'); let ro = 0, rs = 1;
+  for (const c of CLICKS) if (t >= c && t < c + .45) { const k = P(t, c, .45); ro = (1 - k) * .9; rs = 1 + k * 2.6; }
+  ring.style.opacity = ro; ring.style.transform = `translate(${cx}px,${cy}px) scale(${rs})`;
+
+  // ===== phone (steps 2 & 4) =====
+  const pIn1 = out3(P(t, T.s4 + .1, .65)), pOut1 = inOut(P(t, T.s5 - .4, .4));
+  const pIn2 = out3(P(t, T.s6 + .05, .6)), pOut2 = inOut(P(t, T.s7 - .45, .4));
+  let po, py, ps;
+  if (t < T.s5 + .5) { po = pIn1 * (1 - pOut1); py = (1 - pIn1) * 80 - pOut1 * 40; ps = lerp(.96, 1, pIn1); }
+  else { po = pIn2 * (1 - pOut2); py = (1 - pIn2) * 80 - pOut2 * 40; ps = lerp(.96, 1, pIn2); }
+  set('phoneWrap', po, 0, py, ps);
+  const studentMode = t >= T.s5 + .5;
+  $('markPage').style.display = studentMode ? 'none' : 'block';
+  $('studentPage').style.display = studentMode ? 'block' : 'none';
+  $('sbar').style.color = studentMode ? '#fff' : '#111827';
+
+  // mark flow
+  const M = t - T.s4;
+  const TAPS = [.95, 1.75, 3.05, 4.75];
+  const focusNum = M >= TAPS[0] && M < TAPS[1], focusCode = M >= TAPS[1] && M < TAPS[2];
+  const num = typed(M, '121', 1.1, .16), code = typed(M, '482917', 1.95, .14);
+  $('inNum').innerHTML = (num || (focusNum ? '' : '<span style="color:#9ca3af;font-weight:600">e.g. 121</span>')) + caret(t, focusNum);
+  $('inCode').innerHTML = (code || (focusCode ? '' : '<span style="color:#9ca3af;font-weight:700;letter-spacing:0;font-size:22px">6-digit code</span>')) + caret(t, focusCode);
+  const focusStyle = (el, f) => { el.style.borderColor = f ? '#22c55e' : '#e5e7eb'; el.style.boxShadow = f ? '0 0 0 4px #dcfce7' : 'none'; };
+  focusStyle($('inNum'), focusNum); focusStyle($('inCode'), focusCode);
+  const ready = code.length === 6 && num.length > 0;
+  const verifying = M >= TAPS[2] && M < 3.5;
+  $('btnVerify').style.opacity = ready && !verifying ? 1 : .5;
+  $('verifyLabel').textContent = verifying ? 'Verifying...' : 'Verify →';
+  $('btnVerify').style.transform = `scale(${1 - .04 * Math.sin(Math.PI * P(M, TAPS[2] - .02, .18))})`;
+  const marking = M >= TAPS[3] && M < 5.1;
+  $('confirmLabel').textContent = marking ? 'Marking...' : '✓ Confirm Present';
+  $('btnConfirm').style.opacity = marking ? .5 : 1;
+  $('btnConfirm').style.transform = `scale(${1 - .04 * Math.sin(Math.PI * P(M, TAPS[3] - .02, .18))})`;
+  // card swaps: old out, then new in
+  const eOut = inOut(P(M, 3.5, .18)), cIn = out3(P(M, 3.62, .35)), cOut = inOut(P(M, 5.1, .18)), dIn = out3(P(M, 5.22, .4));
+  set('mEnter', 1 - eOut, 0, -eOut * 10);
+  set('mConfirm', cIn * (1 - cOut), 0, (1 - cIn) * 16 - cOut * 10, lerp(.97, 1, cIn));
+  set('mDone', dIn, 0, (1 - dIn) * 16, lerp(.96, 1, dIn));
+  const pop = P(M, 5.3, .5);
+  $('doneIcon').style.transform = `scale(${M < 5.3 ? 0 : back(pop)})`;
+  // finger tap indicator
+  const tapEl = $('tap'); let to = 0, tx = 0, ty = 0, tsc = 1;
+  const tapTargets = [['inNum', TAPS[0]], ['inCode', TAPS[1]], ['btnVerify', TAPS[2]], ['btnConfirm', TAPS[3]]];
+  const scr = tapEl.parentElement.getBoundingClientRect();
+  for (const [id, c] of tapTargets) {
+    if (M >= c - .25 && M < c + .35) {
+      const r = $(id).getBoundingClientRect(), sx = scr.width / 386;
+      tx = (r.left + r.width / 2 - scr.left) / sx; ty = (r.top + r.height / 2 - scr.top) / sx;
+      to = M < c ? P(M, c - .25, .2) : 1 - P(M, c + .05, .3);
+      tsc = M < c ? lerp(1.3, 1, P(M, c - .25, .25)) : lerp(.85, 1.15, P(M, c, .35));
+    }
+  }
+  if (studentMode) to = 0;
+  tapEl.style.opacity = to; tapEl.style.left = tx + 'px'; tapEl.style.top = ty + 'px'; tapEl.style.transform = `scale(${tsc})`;
+
+  // student page
+  const S = t - T.s6;
+  document.querySelectorAll('#studentPage .sp').forEach((el, i) => set(el, out3(P(S, .35 + i * .14, .45)), 0, (1 - out3(P(S, .35 + i * .14, .45))) * 24));
+  document.querySelectorAll('.pct').forEach((el, i) => {
+    const target = +el.dataset.p, k = out3(P(S, .6 + i * .14, .9));
+    el.textContent = Math.round(target * k) + '%';
+  });
+
+  // ===== S7 outro =====
+  const O = T.s7;
+  rise($('o1'), t, O + .2, 99, 30);
+  rise($('o2'), t, O + .4, 99, 24);
+  const ln = out3(P(t, O + .7, .6)); $('o3').style.opacity = ln; $('o3').firstElementChild.style.width = (ln * 120) + 'px';
+  rise($('o4'), t, O + .85, 99, 20);
+  rise($('o5'), t, O + .95, 99, 26);
+  rise($('o6'), t, O + 1.15, 99, 22);
+  $('s7').style.visibility = t > O ? 'visible' : 'hidden';
+  $('s2').style.visibility = (t > 3.3 && t < T.s3) ? 'visible' : 'hidden';
+}
+
+window.render = render;
+window.CUE_TIMES = () => ({
+  clicks: CLICKS,
+  taps: [.95, 1.75, 3.05, 4.75].map(x => x + T.s4),
+  numKeys: [0, 1, 2].map(i => T.s4 + 1.1 + i * .16),
+  codeKeys: [0, 1, 2, 3, 4, 5].map(i => T.s4 + 1.95 + i * .14),
+  tiles: [0, 1, 2, 3, 4, 5].map(i => .2 + i * .14 + .2),
+  tilesGreen: 1.15,
+  success: T.s4 + 5.3,
+  rowIn: 9.95,
+  pops: (() => { const p = []; let acc = .9, gap = .42; for (let i = 0; i < 18; i++) { p.push(acc + T.s5); acc += gap; gap = Math.max(.13, gap * .86); } return p; })(),
+  scenes: [T.s2, T.s3, T.s4, T.s5, T.s6, T.s7],
+  T,
+});
+render(+(new URLSearchParams(location.search).get('t') || 0));
+</script>
+</body>
+</html>

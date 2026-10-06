@@ -5,8 +5,8 @@ import { Subject, Student } from '@/lib/types'
 import { formatDateShort, formatDate } from '@/lib/utils'
 import { CheckCircle2, XCircle, Save, Plus, Trash2, CalendarCheck, Lock, Unlock, Eye, EyeOff } from 'lucide-react'
 
-type Status = 'present' | 'absent'
-const statusCycle: Status[] = ['present', 'absent']
+type Status = 'present' | 'absent' | 'leave'
+const statusCycle: Status[] = ['present', 'absent', 'leave']
 
 export default function AttendancePage() {
   const [subjects, setSubjects] = useState<Subject[]>([])
@@ -186,12 +186,14 @@ export default function AttendancePage() {
   const statusIcon = (s: Status, locked: boolean) => {
     const cls = locked ? 'opacity-50' : ''
     if (s === 'present') return <CheckCircle2 className={`w-5 h-5 text-green-600 ${cls}`} />
+    if (s === 'leave') return <span className={`text-xs font-bold text-blue-500 ${cls}`}>L</span>
     return <XCircle className={`w-5 h-5 text-red-400 ${cls}`} />
   }
 
   const statusCell = (s: Status, locked: boolean) => {
     const base = locked ? 'opacity-60 cursor-not-allowed ' : 'cursor-pointer '
     if (s === 'present') return base + (locked ? 'bg-green-50' : 'bg-green-50 hover:bg-green-100')
+    if (s === 'leave') return base + (locked ? 'bg-blue-50' : 'bg-blue-50 hover:bg-blue-100')
     return base + (locked ? 'bg-red-50' : 'bg-red-50 hover:bg-red-100')
   }
 
@@ -354,6 +356,7 @@ export default function AttendancePage() {
               <div className="px-4 py-3 bg-gray-50 border-t flex gap-4 text-xs text-gray-500 flex-wrap">
                 <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Present</span>
                 <span className="flex items-center gap-1"><XCircle className="w-3.5 h-3.5 text-red-400" /> Absent</span>
+                <span className="flex items-center gap-1 font-bold text-blue-500">L Leave</span>
                 <span className="flex items-center gap-1"><Lock className="w-3.5 h-3.5 text-orange-500" /> Locked date</span>
               </div>
             </div>

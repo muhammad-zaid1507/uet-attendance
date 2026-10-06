@@ -1,0 +1,3 @@
+No more roll call in CYS Section C. The CR generates a 6-digit code, everyone marks themselves present from their phone, and the list fills in live. Students can check their own % per subject any time at uet-attendance.vercel.app.
+
+Built and presented by Zaid · ✦ ARWA TRAVELS ✦

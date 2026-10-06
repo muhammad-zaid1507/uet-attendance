@@ -20,7 +20,7 @@ export interface AttendanceRecord {
   student_id: string
   subject_id: string
   date: string
-  status: 'present' | 'absent'
+  status: 'present' | 'absent' | 'leave'
   marked_by: string
   created_at: string
 }
