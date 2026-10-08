@@ -30,13 +30,49 @@ export default function BackupPage() {
       attendance_locks: locks ?? [],
     }
 
-    // Dynamically import JSZip
+    const studentList = students ?? []
+    const subjectList = subjects ?? []
+    const attList: { student_id: string; subject_id: string; date: string; status: string }[] = attendance ?? []
+
+    // Build per-subject Excel sheets
+    const XLSX = await import('xlsx')
     const JSZip = (await import('jszip')).default
     const zip = new JSZip()
+
+    // Raw data backup
     zip.file('backup.json', JSON.stringify(backup, null, 2))
-    zip.file('students.json', JSON.stringify(students ?? [], null, 2))
-    zip.file('subjects.json', JSON.stringify(subjects ?? [], null, 2))
-    zip.file('attendance.json', JSON.stringify(attendance ?? [], null, 2))
+
+    // One Excel file per subject inside an "excel/" folder
+    const excelFolder = zip.folder('excel')!
+    for (const sub of subjectList) {
+      const subAtt = attList.filter(r => r.subject_id === sub.id)
+      const dates = Array.from(new Set(subAtt.map(r => r.date))).sort()
+
+      const rows = studentList.map((s, i) => {
+        const row: Record<string, string | number> = {
+          '#': i + 1,
+          'Roll No': s.roll_no,
+          'Name': s.name,
+        }
+        for (const d of dates) {
+          const rec = subAtt.find(r => r.student_id === s.id && r.date === d)
+          const label = new Date(d).toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })
+          row[label] = rec ? (rec.status === 'present' ? 'P' : rec.status === 'leave' ? 'L' : 'A') : 'A'
+        }
+        const present = dates.filter(d => subAtt.find(r => r.student_id === s.id && r.date === d && r.status === 'present')).length
+        row['P'] = present
+        row['A'] = dates.length - present
+        row['Total'] = dates.length
+        row['%'] = dates.length > 0 ? `${Math.round((present / dates.length) * 100)}%` : '—'
+        return row
+      })
+
+      const ws = XLSX.utils.json_to_sheet(rows)
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, sub.code)
+      const xlsxBuf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+      excelFolder.file(`${sub.code} - ${sub.name}.xlsx`, xlsxBuf)
+    }
 
     const blob = await zip.generateAsync({ type: 'blob' })
     const url = URL.createObjectURL(blob)
@@ -118,7 +154,7 @@ export default function BackupPage() {
       {/* Download */}
       <div className="bg-white rounded-2xl shadow p-6 mb-5">
         <h2 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><Download className="w-5 h-5 text-purple-600" /> Download Backup</h2>
-        <p className="text-sm text-gray-500 mb-4">Creates a <strong>.zip</strong> file with all students, subjects, and attendance records. Store it somewhere safe.</p>
+        <p className="text-sm text-gray-500 mb-4">Creates a <strong>.zip</strong> with all data (for restore) + an <strong>Excel sheet for every subject</strong> — no need to download subject by subject.</p>
         <button
           onClick={downloadBackup}
           disabled={downloading}
