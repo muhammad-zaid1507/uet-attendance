@@ -48,7 +48,7 @@ export default function BackupPage() {
       const subAtt = attList.filter(r => r.subject_id === sub.id)
       const dates = Array.from(new Set(subAtt.map(r => r.date))).sort()
 
-      const rows = studentList.map((s, i) => {
+      const rows = studentList.map((s: { id: string; name: string; roll_no: string }, i: number) => {
         const row: Record<string, string | number> = {
           '#': i + 1,
           'Roll No': s.roll_no,
