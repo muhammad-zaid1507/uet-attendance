@@ -46,55 +46,24 @@ export default function StudentPage() {
 
     setStudentName(student.name)
 
-    // Get student's own records
     const { data: records } = await supabase
       .from('attendance')
       .select('subject_id, date, status, subjects(name, code)')
       .eq('student_id', student.id)
       .order('date', { ascending: true })
 
-    // Get ALL dates that exist per subject (from all students) so we don't miss dates with no record
-    const { data: allDates } = await supabase
-      .from('attendance')
-      .select('subject_id, date, subjects(name, code)')
-      .order('date', { ascending: true })
-
-    // Build a map of subject_id -> all distinct dates + subject info
-    const subjectDates: Record<string, { dates: Set<string>; name: string; code: string }> = {}
-    for (const r of allDates ?? []) {
+    const map: Record<string, SubjectSummary> = {}
+    for (const r of records ?? []) {
       const sub = Array.isArray(r.subjects) ? r.subjects[0] as { name: string; code: string } | undefined : r.subjects as { name: string; code: string } | null
       if (!sub) continue
-      if (!subjectDates[r.subject_id]) subjectDates[r.subject_id] = { dates: new Set(), name: sub.name, code: sub.code }
-      subjectDates[r.subject_id].dates.add(r.date)
-    }
-
-    // Build student's status lookup
-    const studentStatus: Record<string, Record<string, 'present' | 'absent' | 'leave'>> = {}
-    for (const r of records ?? []) {
-      if (!studentStatus[r.subject_id]) studentStatus[r.subject_id] = {}
-      studentStatus[r.subject_id][r.date] = r.status as 'present' | 'absent' | 'leave'
-    }
-
-    // Only show subjects that have at least one record for this student
-    const studentSubjectIds = new Set((records ?? []).map((r: { subject_id: string }) => r.subject_id))
-
-    const map: Record<string, SubjectSummary> = {}
-    for (const [subId, info] of Object.entries(subjectDates)) {
-      if (!studentSubjectIds.has(subId)) continue
-      const sortedDates = Array.from(info.dates).sort()
-      const statuses = sortedDates.map(d => studentStatus[subId]?.[d] ?? 'absent' as 'present' | 'absent' | 'leave')
-      const present = statuses.filter(s => s === 'present').length
-      const leave = statuses.filter(s => s === 'leave').length
-      map[subId] = {
-        subject_id: subId,
-        subject_name: info.name,
-        subject_code: info.code,
-        dates: sortedDates,
-        statuses,
-        present,
-        leave,
-        total: sortedDates.length,
+      if (!map[r.subject_id]) {
+        map[r.subject_id] = { subject_id: r.subject_id, subject_name: sub.name, subject_code: sub.code, dates: [], statuses: [], present: 0, leave: 0, total: 0 }
       }
+      map[r.subject_id].dates.push(r.date)
+      map[r.subject_id].statuses.push(r.status as 'present' | 'absent' | 'leave')
+      map[r.subject_id].total++
+      if (r.status === 'present') map[r.subject_id].present++
+      if (r.status === 'leave') map[r.subject_id].leave++
     }
 
     setSubjects(Object.values(map))

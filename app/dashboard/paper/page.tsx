@@ -67,11 +67,15 @@ export default function PaperPage() {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    const upserts = matched.map(m => ({
-      student_id: m.id,
+    // Get ALL students so we can mark non-present ones as absent
+    const { data: allStudents } = await supabase.from('students').select('id')
+    const presentIds = new Set(matched.map(m => m.id))
+
+    const upserts = (allStudents ?? []).map((s: { id: string }) => ({
+      student_id: s.id,
       subject_id: selSubject,
       date: selDate,
-      status: 'present' as const,
+      status: presentIds.has(s.id) ? 'present' as const : 'absent' as const,
       marked_by: user?.id ?? null,
     }))
 
