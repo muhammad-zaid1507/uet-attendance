@@ -43,14 +43,21 @@ export default function ReportsPage() {
     const subList: Subject[] = subs ?? []
     const attList: { student_id: string; subject_id: string; date: string; status: string }[] = att ?? []
 
-    // Build student reports
+    // Total distinct dates per subject = ground truth denominator
+    const subjectTotalDates: Record<string, number> = {}
+    for (const sub of subList) {
+      subjectTotalDates[sub.id] = new Set(attList.filter(r => r.subject_id === sub.id).map(r => r.date)).size
+    }
+
+    // Build student reports — denominator = total subject dates (not per-student rows)
     const sReports: StudentReport[] = studList.map(student => {
       const subjectData = subList.map(subject => {
+        const total = subjectTotalDates[subject.id] ?? 0
+        if (total === 0) return null
         const rows = attList.filter(r => r.student_id === student.id && r.subject_id === subject.id)
         const present = rows.filter(r => r.status === 'present').length
-        const total = rows.length
         return { subject, present, total, pct: calcPercentage(present, total) }
-      }).filter(s => s.total > 0)
+      }).filter((s): s is { subject: Subject; present: number; total: number; pct: number } => s !== null && s.total > 0)
 
       const totalP = subjectData.reduce((a, b) => a + b.present, 0)
       const totalT = subjectData.reduce((a, b) => a + b.total, 0)
@@ -60,12 +67,11 @@ export default function ReportsPage() {
     // Build subject reports
     const subReports: SubjectReport[] = subList.map(subject => {
       const rows = attList.filter(r => r.subject_id === subject.id)
-      const totalDates = new Set(rows.map(r => r.date)).size
+      const totalDates = subjectTotalDates[subject.id] ?? 0
       const studentData = studList.map(student => {
         const srows = rows.filter(r => r.student_id === student.id)
         const present = srows.filter(r => r.status === 'present').length
-        const total = srows.length
-        return { student, present, total, pct: calcPercentage(present, total) }
+        return { student, present, total: totalDates, pct: calcPercentage(present, totalDates) }
       }).filter(s => s.total > 0)
 
       const avg = studentData.length > 0
