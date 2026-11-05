@@ -17,7 +17,7 @@ export default function BackupPage() {
     const [{ data: students }, { data: subjects }, { data: attendance }, { data: locks }] = await Promise.all([
       supabase.from('students').select('*').order('roll_no'),
       supabase.from('subjects').select('*').order('name'),
-      supabase.from('attendance').select('*').order('date'),
+      supabase.from('attendance').select('*').order('date').limit(50000),
       supabase.from('attendance_locks').select('*'),
     ])
 

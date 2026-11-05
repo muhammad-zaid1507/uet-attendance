@@ -36,7 +36,7 @@ export default function ReportsPage() {
     const [{ data: studs }, { data: subs }, { data: att }] = await Promise.all([
       supabase.from('students').select('*').order('roll_no'),
       supabase.from('subjects').select('*').order('name'),
-      supabase.from('attendance').select('student_id, subject_id, date, status'),
+      supabase.from('attendance').select('student_id, subject_id, date, status').limit(50000),
     ])
 
     const studList: Student[] = studs ?? []
