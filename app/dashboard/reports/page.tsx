@@ -43,19 +43,55 @@ export default function ReportsPage() {
     const subList: Subject[] = subs ?? []
     const attList: { student_id: string; subject_id: string; date: string; status: string }[] = att ?? []
 
-    // Total distinct dates per subject = ground truth denominator
+    // For each subject, classify each date as "complete" (has absent records = Paper tab used, all students recorded)
+    // or "partial" (only present records = Track tab used, missing record means student wasn't tracked)
+    const subjectCompleteDates: Record<string, Set<string>> = {}
+    for (const sub of subList) {
+      const subAtt = attList.filter(r => r.subject_id === sub.id)
+      const allDates = Array.from(new Set(subAtt.map(r => r.date)))
+      const complete = new Set<string>()
+      for (const date of allDates) {
+        const dateRecords = subAtt.filter(r => r.date === date)
+        // A date is complete if it has at least one absent/leave record (Paper tab marks everyone)
+        if (dateRecords.some(r => r.status === 'absent' || r.status === 'leave')) {
+          complete.add(date)
+        }
+      }
+      subjectCompleteDates[sub.id] = complete
+    }
+
+    // Total distinct dates per subject
     const subjectTotalDates: Record<string, number> = {}
     for (const sub of subList) {
       subjectTotalDates[sub.id] = new Set(attList.filter(r => r.subject_id === sub.id).map(r => r.date)).size
     }
 
-    // Build student reports — denominator = total subject dates (same for all students)
+    // Build student reports:
+    // - Complete dates: count for all students (missing = absent)
+    // - Partial dates: only count if student has a record (Track tab = only present were recorded)
     const sReports: StudentReport[] = studList.map(student => {
       const subjectData = subList.map(subject => {
-        const total = subjectTotalDates[subject.id] ?? 0
-        if (total === 0) return null
+        const completeDates = subjectCompleteDates[subject.id] ?? new Set()
+        const allDates = Array.from(new Set(attList.filter(r => r.subject_id === subject.id).map(r => r.date)))
+        if (allDates.length === 0) return null
         const rows = attList.filter(r => r.student_id === student.id && r.subject_id === subject.id)
-        const present = rows.filter(r => r.status === 'present').length
+        const rowByDate = new Map(rows.map(r => [r.date, r.status]))
+        let total = 0, present = 0
+        for (const date of allDates) {
+          const status = rowByDate.get(date)
+          if (completeDates.has(date)) {
+            // Complete date — counts for everyone
+            total++
+            if (status === 'present') present++
+          } else {
+            // Partial date — only count if student has a record
+            if (status) {
+              total++
+              if (status === 'present') present++
+            }
+          }
+        }
+        if (total === 0) return null
         return { subject, present, total, pct: calcPercentage(present, total) }
       }).filter((s): s is { subject: Subject; present: number; total: number; pct: number } => s !== null && s.total > 0)
 
@@ -66,19 +102,33 @@ export default function ReportsPage() {
 
     // Build subject reports
     const subReports: SubjectReport[] = subList.map(subject => {
-      const rows = attList.filter(r => r.subject_id === subject.id)
+      const completeDates = subjectCompleteDates[subject.id] ?? new Set()
+      const allDates = Array.from(new Set(attList.filter(r => r.subject_id === subject.id).map(r => r.date)))
       const totalDates = subjectTotalDates[subject.id] ?? 0
       const studentData = studList.map(student => {
-        const srows = rows.filter(r => r.student_id === student.id)
-        const present = srows.filter(r => r.status === 'present').length
-        return { student, present, total: totalDates, pct: calcPercentage(present, totalDates) }
+        const srows = attList.filter(r => r.student_id === student.id && r.subject_id === subject.id)
+        const rowByDate = new Map(srows.map(r => [r.date, r.status]))
+        let total = 0, present = 0
+        for (const date of allDates) {
+          const status = rowByDate.get(date)
+          if (completeDates.has(date)) {
+            total++
+            if (status === 'present') present++
+          } else {
+            if (status) {
+              total++
+              if (status === 'present') present++
+            }
+          }
+        }
+        return { student, present, total, pct: calcPercentage(present, total) }
       }).filter(s => s.total > 0)
 
       const avg = studentData.length > 0
         ? Math.round(studentData.reduce((a, b) => a + b.pct, 0) / studentData.length)
         : 0
 
-      return { subject, students: studentData, avgPct: avg, totalDates }
+      return { subject, students: studentData, avgPct: avg, totalDates: allDates.length }
     }).filter(r => r.students.length > 0)
 
     setStudents(studList)
